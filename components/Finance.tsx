@@ -1,7 +1,8 @@
 
 import React, { useState, useMemo, useEffect } from 'react';
 import { Transaction, Event, Project } from '../types';
-import { Coins, TrendingUp, TrendingDown, FileText, ArrowUpRight, ArrowDownLeft, Wallet, CreditCard, ShieldCheck, X, Save, Printer, ChevronDown, PieChart as PieChartIcon, BarChart3, Download, Calendar, Filter, ArrowRightLeft, Briefcase, Tent, Activity, ChevronUp, Target, Landmark, BellRing, Sparkles } from 'lucide-react';
+// Fix: Added CheckCircle2 to the import list from lucide-react
+import { Coins, TrendingUp, TrendingDown, FileText, ArrowUpRight, ArrowDownLeft, Wallet, CreditCard, ShieldCheck, X, Save, Printer, ChevronDown, PieChart as PieChartIcon, BarChart3, Download, Calendar, Filter, ArrowRightLeft, Briefcase, Tent, Activity, ChevronUp, Target, Landmark, BellRing, Sparkles, CheckCircle2 } from 'lucide-react';
 import { PieChart, Pie, Cell, ResponsiveContainer, Tooltip, BarChart, Bar, XAxis, YAxis, CartesianGrid, Legend } from 'recharts';
 
 interface FinanceProps {
@@ -136,6 +137,13 @@ const Finance: React.FC<FinanceProps> = ({ transactions, insuranceTotal, onAddTr
   const expense = transactions.filter(t => t.type === 'EXPENSE').reduce((acc, curr) => acc + curr.amount, 0);
   const balance = income - expense;
 
+  // --- AUTOMATIC BANK BALANCE CALCULATION ---
+  const bankBalance = useMemo(() => {
+      return transactions
+          .filter(t => t.description.includes('إيداع في الحساب البنكي'))
+          .reduce((acc, curr) => acc + curr.amount, 0);
+  }, [transactions]);
+
   const data = [
     { name: 'مداخيل', value: income, color: '#10b981' },
     { name: 'مصاريف', value: expense, color: '#f43f5e' },
@@ -211,7 +219,7 @@ const Finance: React.FC<FinanceProps> = ({ transactions, insuranceTotal, onAddTr
   // Bank Transfer
   const handleBankTransfer = () => {
       if (!bankTransferAmount || bankTransferAmount > balance) {
-          alert('يرجى التحقق من المبلغ');
+          alert('يرجى التحقق من المبلغ والسيولة المتوفرة');
           return;
       }
       
@@ -227,7 +235,6 @@ const Finance: React.FC<FinanceProps> = ({ transactions, insuranceTotal, onAddTr
       }
       setShowBankModal(false);
       setBankTransferAmount(0);
-      alert('تم تسجيل الإيداع البنكي بنجاح');
   };
 
   // --- Export Functionality ---
@@ -264,7 +271,7 @@ const Finance: React.FC<FinanceProps> = ({ transactions, insuranceTotal, onAddTr
       return (
       <div className="space-y-8 animate-fade-in">
           
-          {/* --- DISTINCT NOTIFICATION BANNER (Requested Feature) --- */}
+          {/* --- DISTINCT NOTIFICATION BANNER --- */}
           {showIncomeNotification && isLatestIncome && (
               <div className="bg-gradient-to-r from-emerald-900 to-teal-900 border border-emerald-500/50 rounded-2xl p-6 shadow-2xl relative overflow-hidden animate-bounce-subtle">
                   <div className="absolute top-0 right-0 w-2 h-full bg-emerald-400"></div>
@@ -325,12 +332,12 @@ const Finance: React.FC<FinanceProps> = ({ transactions, insuranceTotal, onAddTr
                 </div>
                 
                 <div className="relative z-20">
-                    <p className="text-emerald-200/80 mb-1 font-medium tracking-wider">الرصيد الحالي</p>
+                    <p className="text-emerald-200/80 mb-1 font-medium tracking-wider">الرصيد الحالي (الصندوق)</p>
                     <h3 className="text-5xl font-bold text-white font-mono tracking-tight tabular-nums" dir="ltr">{balance.toLocaleString()} <span className="text-2xl text-emerald-400/80">DZD</span></h3>
                 </div>
             </div>
 
-            {/* Bank Treasury Card - NEW */}
+            {/* Bank Treasury Card - UPDATED FOR AUTOMATIC UPDATE */}
             <div className="bg-gradient-to-br from-yellow-900/40 to-night-900 border border-yellow-500/20 rounded-3xl p-8 flex flex-col justify-between shadow-xl relative overflow-hidden group">
                  <div className="absolute top-0 right-0 w-32 h-32 bg-yellow-600/10 rounded-full blur-2xl -translate-y-1/2 translate-x-1/2 group-hover:bg-yellow-600/20 transition-all"></div>
                  <div className="flex justify-between items-start mb-4 relative z-10">
@@ -346,8 +353,12 @@ const Finance: React.FC<FinanceProps> = ({ transactions, insuranceTotal, onAddTr
                  </div>
                  <div className="relative z-10">
                     <p className="text-yellow-200/80 mb-1 font-medium tracking-wider">خزينة الفوج (البنك)</p>
-                    <h3 className="text-3xl font-bold text-white font-mono tracking-tight tabular-nums">-- <span className="text-lg text-yellow-400/80">DZD</span></h3>
-                    <p className="text-xs text-night-400 mt-2">رصيد الحساب البنكي (يتم تحديثه يدوياً)</p>
+                    <h3 className="text-3xl font-bold text-white font-mono tracking-tight tabular-nums">
+                        {bankBalance.toLocaleString()} <span className="text-lg text-yellow-400/80">DZD</span>
+                    </h3>
+                    <p className="text-xs text-night-400 mt-2 flex items-center gap-1">
+                        <CheckCircle2 size={12} className="text-emerald-500"/> رصيد محدث تلقائياً من السجلات
+                    </p>
                  </div>
             </div>
 
@@ -447,10 +458,9 @@ const Finance: React.FC<FinanceProps> = ({ transactions, insuranceTotal, onAddTr
 
   const renderReports = () => (
       <div className="animate-fade-in space-y-8">
-          {/* Header & Filter Controls - Refactored Layout */}
+          {/* Header & Filter Controls */}
           <div className="bg-night-800/60 p-6 rounded-3xl border border-white/10">
               <div className="flex flex-col gap-6">
-                  {/* Row 1: Title */}
                   <div className="border-b border-white/5 pb-4">
                       <h3 className="text-2xl font-bold text-white flex items-center gap-2">
                           <BarChart3 className="text-purple-500" />
@@ -459,7 +469,6 @@ const Finance: React.FC<FinanceProps> = ({ transactions, insuranceTotal, onAddTr
                       <p className="text-night-400 text-sm mt-1">توليد تقارير مفصلة عن الوضع المالي، الميزانية، والتدفقات النقدية.</p>
                   </div>
                   
-                  {/* Row 2: Controls */}
                   <div className="flex flex-wrap items-end gap-4 w-full">
                       <div className="space-y-2 flex-1 min-w-[200px]">
                           <label className="text-xs font-bold text-night-400 block">من تاريخ</label>
@@ -497,9 +506,7 @@ const Finance: React.FC<FinanceProps> = ({ transactions, insuranceTotal, onAddTr
 
           {/* Report Preview Area */}
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-              {/* Report Stats */}
               <div className="lg:col-span-2 space-y-6">
-                  {/* Monthly Trend Chart */}
                   <div className="bg-night-800/60 p-6 rounded-3xl border border-white/5 shadow-lg h-80">
                       <h4 className="text-white font-bold mb-4 flex items-center gap-2"><TrendingUp size={18} className="text-emerald-500"/> الاتجاه المالي (شهري)</h4>
                       <ResponsiveContainer width="100%" height="100%">
@@ -520,7 +527,6 @@ const Finance: React.FC<FinanceProps> = ({ transactions, insuranceTotal, onAddTr
                       </ResponsiveContainer>
                   </div>
 
-                  {/* Detailed Table Preview */}
                   <div className="bg-night-800/60 rounded-3xl border border-white/5 overflow-hidden">
                       <div className="p-4 bg-night-900/50 border-b border-white/5 flex justify-between items-center">
                           <h4 className="text-white font-bold">تفاصيل العمليات (معاينة)</h4>
@@ -551,7 +557,6 @@ const Finance: React.FC<FinanceProps> = ({ transactions, insuranceTotal, onAddTr
                   </div>
               </div>
 
-              {/* Actions & Summary */}
               <div className="space-y-6">
                   <div className="bg-night-800/60 p-6 rounded-3xl border border-white/5">
                       <h4 className="text-white font-bold mb-4">ملخص الفترة</h4>
@@ -594,10 +599,8 @@ const Finance: React.FC<FinanceProps> = ({ transactions, insuranceTotal, onAddTr
 
   const renderTransfers = () => (
       <div className="animate-fade-in grid grid-cols-1 lg:grid-cols-12 gap-8">
-          {/* Transfer Form - Updated to be Collapsible and Smart */}
           <div className="lg:col-span-4 space-y-6">
               <div className="bg-night-800/60 border border-white/10 rounded-3xl shadow-lg overflow-hidden transition-all duration-300">
-                  {/* Collapsible Header */}
                   <div 
                     onClick={() => setIsTransferFormOpen(!isTransferFormOpen)}
                     className="p-6 flex justify-between items-center cursor-pointer bg-night-900/30 hover:bg-white/5 transition-colors"
@@ -611,7 +614,6 @@ const Finance: React.FC<FinanceProps> = ({ transactions, insuranceTotal, onAddTr
                       {isTransferFormOpen ? <ChevronUp size={20} className="text-night-400"/> : <ChevronDown size={20} className="text-night-400"/>}
                   </div>
                   
-                  {/* Collapsible Content */}
                   {isTransferFormOpen && (
                       <div className="p-8 pt-2 space-y-4 border-t border-white/5 animate-fade-in">
                           <div className="space-y-2">
@@ -638,7 +640,7 @@ const Finance: React.FC<FinanceProps> = ({ transactions, insuranceTotal, onAddTr
                                   ]}
                                   value={transferForm.destinationType}
                                   onChange={(val: any) => {
-                                      setTransferForm({...transferForm, destinationType: val, description: ''}); // Reset desc when type changes
+                                      setTransferForm({...transferForm, destinationType: val, description: ''});
                                   }}
                                   icon={ArrowUpRight}
                               />
@@ -646,7 +648,6 @@ const Finance: React.FC<FinanceProps> = ({ transactions, insuranceTotal, onAddTr
 
                           <div className="space-y-2">
                               <label className="text-sm font-bold text-night-300">اسم الوجهة / التفاصيل</label>
-                              {/* SMART DROPDOWN FOR DESTINATION DETAILS (Uses Real IDs) */}
                               <Dropdown 
                                   options={destinationOptions}
                                   value={transferForm.description}
@@ -676,7 +677,6 @@ const Finance: React.FC<FinanceProps> = ({ transactions, insuranceTotal, onAddTr
                   )}
               </div>
 
-              {/* Info Card */}
               <div className="bg-blue-900/10 p-6 rounded-2xl border border-blue-500/20">
                   <div className="flex items-start gap-3">
                       <ShieldCheck className="text-blue-400 shrink-0" size={24}/>
@@ -690,7 +690,6 @@ const Finance: React.FC<FinanceProps> = ({ transactions, insuranceTotal, onAddTr
               </div>
           </div>
 
-          {/* Transfer Log */}
           <div className="lg:col-span-8">
               <div className="bg-night-800/60 rounded-3xl border border-white/10 overflow-hidden shadow-lg h-full flex flex-col">
                   <div className="p-6 border-b border-white/5 flex justify-between items-center">
@@ -746,7 +745,6 @@ const Finance: React.FC<FinanceProps> = ({ transactions, insuranceTotal, onAddTr
             <p className="text-night-400 mt-2">إدارة التدفقات المالية، التقارير، والتحويلات الداخلية.</p>
         </div>
         
-        {/* Global Actions (Visible only on Overview) */}
         {activeTab === 'OVERVIEW' && (
             <div className="flex gap-3">
                 <button onClick={() => handleOpenModal('INCOME')} className="px-6 py-3 bg-emerald-600 hover:bg-emerald-500 text-white rounded-xl flex items-center gap-2 font-bold shadow-lg shadow-emerald-900/40 transition-all hover:scale-105">
@@ -759,7 +757,6 @@ const Finance: React.FC<FinanceProps> = ({ transactions, insuranceTotal, onAddTr
         )}
       </div>
 
-      {/* Tabs Navigation */}
       <div className="flex gap-1 border-b border-white/10">
           <button 
             onClick={() => setActiveTab('OVERVIEW')} 
@@ -781,14 +778,12 @@ const Finance: React.FC<FinanceProps> = ({ transactions, insuranceTotal, onAddTr
           </button>
       </div>
 
-      {/* Content Area */}
       <div className="flex-1">
           {activeTab === 'OVERVIEW' && renderOverview()}
           {activeTab === 'TRANSFERS' && renderTransfers()}
           {activeTab === 'REPORTS' && renderReports()}
       </div>
 
-      {/* Transaction Modal (Global for Overview) */}
       {showModal && (
           <div className="fixed inset-0 z-50 flex items-center justify-center bg-night-900/90 backdrop-blur-md p-4 animate-fade-in">
               <div className="bg-night-800 w-full max-w-md rounded-2xl border border-white/10 shadow-2xl p-6">
@@ -801,7 +796,6 @@ const Finance: React.FC<FinanceProps> = ({ transactions, insuranceTotal, onAddTr
                   </div>
                   
                   <div className="space-y-4">
-                      {/* REPLACED BUTTONS WITH DROPDOWN */}
                       <div className="space-y-2">
                           <label className="text-sm text-night-400">نوع العملية</label>
                           <Dropdown 
@@ -849,7 +843,6 @@ const Finance: React.FC<FinanceProps> = ({ transactions, insuranceTotal, onAddTr
           </div>
       )}
 
-      {/* Bank Transfer Modal */}
       {showBankModal && (
           <div className="fixed inset-0 z-50 flex items-center justify-center bg-night-900/90 backdrop-blur-md p-4 animate-fade-in">
               <div className="bg-night-800 w-full max-w-sm rounded-3xl border border-white/10 shadow-2xl p-6">
@@ -873,7 +866,7 @@ const Finance: React.FC<FinanceProps> = ({ transactions, insuranceTotal, onAddTr
                           />
                       </div>
                       <div className="bg-night-900/50 p-3 rounded-lg text-xs text-night-400 text-center border border-white/5">
-                          سيتم تسجيل هذا المبلغ كمصروف من الخزينة وتحديث رصيد البنك.
+                          سيتم تسجيل هذا المبلغ كمصروف من الخزينة وتحديث رصيد البنك تلقائياً.
                       </div>
                   </div>
 

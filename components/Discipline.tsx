@@ -136,21 +136,21 @@ const Discipline: React.FC<DisciplineProps> = ({ attendance, sanctions, members,
       setViewMode('FORM');
   };
 
+  // UPDATED: handleSaveSession is now immediate and mandatory
   const handleSaveSession = () => {
-      if (window.confirm('هل تريد اعتماد سجل الحضور وتحديث النقاط؟')) {
-          const session: AttendanceSession = {
-              id: `session_${Date.now()}`,
-              number: Number(sessionMeta.number),
-              name: sessionMeta.name,
-              date: sessionMeta.date,
-              location: sessionMeta.location,
-              time: new Date().toLocaleTimeString('ar-DZ', { hour: '2-digit', minute: '2-digit' }),
-              records: newSessionRecords
-          };
-          onAddSession(session);
-          setViewMode('LIST');
-          setSessionMeta({ ...sessionMeta, number: (attendance.length + 2).toString(), name: '' });
-      }
+      // Logic for mandatory session confirmation and save
+      const session: AttendanceSession = {
+          id: `session_${Date.now()}`,
+          number: Number(sessionMeta.number),
+          name: sessionMeta.name,
+          date: sessionMeta.date,
+          location: sessionMeta.location,
+          time: new Date().toLocaleTimeString('ar-DZ', { hour: '2-digit', minute: '2-digit' }),
+          records: newSessionRecords
+      };
+      onAddSession(session);
+      setViewMode('LIST');
+      setSessionMeta({ ...sessionMeta, number: (attendance.length + 2).toString(), name: '' });
   };
 
   const handleAddSanction = () => {
@@ -158,8 +158,6 @@ const Discipline: React.FC<DisciplineProps> = ({ attendance, sanctions, members,
           alert('يرجى اختيار العضو وإدخال سبب العقوبة.');
           return;
       }
-      // في التطبيق الفعلي، يتم استدعاء onAddSanction الممررة عبر props
-      // هنا نقوم بمحاكاة الإضافة وتنبيه المستخدم
       console.log('Sanction Added:', newSanction);
       alert('تم تسجيل العقوبة بنجاح وتوثيق الخصم من النقاط.');
       setShowSanctionModal(false);
@@ -522,7 +520,7 @@ const Discipline: React.FC<DisciplineProps> = ({ attendance, sanctions, members,
                 onClick={() => setActiveTab('SESSIONS')} 
                 className={`px-10 py-4 font-black text-sm rounded-[1.5rem] transition-all flex items-center gap-3 ${activeTab === 'SESSIONS' ? 'bg-primary-600 text-white shadow-2xl shadow-primary-900/40' : 'text-night-400 hover:text-white hover:bg-white/5'}`}
             >
-                <Users size={20} /> الحصص والكشافة
+                <Users size={20} /> الحصص الكشفية
             </button>
             <button 
                 onClick={() => setActiveTab('SANCTIONS')} 

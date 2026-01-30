@@ -1,7 +1,6 @@
 
 import React, { useState } from 'react';
 import { 
-    // Fix: Added Plus to the import list
     Settings as SettingsIcon, FileText, Globe, Users, Palette, Bell, Database, Shield, Activity, 
     Save, Upload, ChevronDown, CheckCircle2, AlertTriangle, Lock, RefreshCw, Smartphone, 
     Mail, Phone, MapPin, Building, CreditCard, Clock, HardDrive, Download, Trash2, RotateCcw,
@@ -19,7 +18,7 @@ const Dropdown = ({ options, value, onChange, placeholder, icon: Icon, className
         <div className={`relative ${className}`}>
             <div 
                 onClick={() => !disabled && setIsOpen(!isOpen)}
-                className={`w-full bg-night-900 border border-white/10 rounded-xl px-4 py-3 flex items-center justify-between cursor-pointer text-white hover:border-primary-500/50 transition-all ${disabled ? 'opacity-50 cursor-not-allowed' : ''} ${isOpen ? 'border-primary-500 ring-1 ring-primary-500/50' : ''}`}
+                className={`w-full bg-night-900 border border-white/10 rounded-xl px-4 py-3 flex items-center justify-between cursor-pointer text-white hover:border-primary-500/50 transition-all ${disabled ? 'opacity-50' : ''} ${isOpen ? 'border-primary-500 ring-1 ring-primary-500/50' : ''}`}
             >
                 <div className="flex items-center gap-3">
                     {Icon && <Icon size={18} className="text-night-400" />}
@@ -400,21 +399,21 @@ const Settings: React.FC = () => {
             <div className="space-y-4">
                 <h4 className="text-sm font-bold text-night-300 flex items-center gap-2 px-1"><History size={16} className="text-primary-400"/> سجل نقاط الرجوع المتميزة</h4>
                 <div className="grid gap-3">
-                    {/* The New Distinct Restore Point */}
-                    <div className="bg-gradient-to-r from-primary-600/20 to-purple-600/10 border border-primary-500/30 p-5 rounded-2xl flex items-center justify-between group hover:border-primary-500 transition-all shadow-xl">
+                    {/* The Newest Restore Point (v2.1) */}
+                    <div className="bg-gradient-to-r from-emerald-600/20 to-teal-600/10 border border-emerald-500/30 p-5 rounded-2xl flex items-center justify-between group hover:border-emerald-500 transition-all shadow-xl">
                         <div className="flex items-center gap-5">
-                            <div className="w-12 h-12 bg-primary-600 rounded-xl flex items-center justify-center text-white shadow-[0_0_15px_rgba(37,99,235,0.4)] group-hover:scale-110 transition-transform">
+                            <div className="w-12 h-12 bg-emerald-600 rounded-xl flex items-center justify-center text-white shadow-[0_0_15px_rgba(16,185,129,0.4)] group-hover:scale-110 transition-transform">
                                 <ShieldCheck size={24}/>
                             </div>
                             <div>
                                 <div className="flex items-center gap-2">
-                                    <h5 className="font-bold text-white text-lg">Scouts Pro Elite Checkpoint</h5>
-                                    <span className="bg-emerald-500/20 text-emerald-400 text-[10px] px-2 py-0.5 rounded font-black uppercase tracking-tighter border border-emerald-500/20">نقطة متميزة</span>
+                                    <h5 className="font-bold text-white text-lg">Scouts Session Active Sync</h5>
+                                    <span className="bg-emerald-500/20 text-emerald-400 text-[10px] px-2 py-0.5 rounded font-black uppercase tracking-tighter border border-emerald-500/20">نقطة فعالة</span>
                                 </div>
                                 <div className="flex items-center gap-3 mt-1 text-xs text-night-400 font-medium">
-                                    <span className="flex items-center gap-1"><Clock size={12}/> اليوم، 14:30</span>
-                                    <span className="flex items-center gap-1"><Zap size={12} className="text-yellow-500"/> إصدار v2.0</span>
-                                    <span className="text-primary-400 font-bold">بواسطة: النظام (تحديث متميز)</span>
+                                    <span className="flex items-center gap-1"><Clock size={12}/> 28-10-2024، 10:00</span>
+                                    <span className="flex items-center gap-1"><Zap size={12} className="text-yellow-500"/> إصدار v2.1</span>
+                                    <span className="text-primary-400 font-bold">بواسطة: النظام (تفعيل الحصص)</span>
                                 </div>
                             </div>
                         </div>
@@ -424,15 +423,15 @@ const Settings: React.FC = () => {
                         </div>
                     </div>
 
-                    {/* Previous Points */}
+                    {/* Previous Point (v2.0) */}
                     <div className="bg-night-900/40 border border-white/5 p-4 rounded-xl flex items-center justify-between opacity-60 hover:opacity-100 transition-opacity">
                         <div className="flex items-center gap-4">
                             <div className="w-10 h-10 bg-night-800 rounded-lg flex items-center justify-center text-night-400">
                                 <History size={20}/>
                             </div>
                             <div>
-                                <h5 className="font-bold text-white text-sm">نسخة أسبوعية تلقائية</h5>
-                                <p className="text-[10px] text-night-500 font-mono">2024-10-27 10:00:00 • v1.8-STABLE</p>
+                                <h5 className="font-bold text-white text-sm">Scouts Pro Elite Checkpoint</h5>
+                                <p className="text-[10px] text-night-500 font-mono">2024-10-27 14:30:00 • v2.0-ELITE</p>
                             </div>
                         </div>
                         <button className="text-[10px] font-bold text-night-400 hover:text-white px-3 py-1.5 bg-white/5 rounded-lg border border-white/5">استعادة</button>
@@ -477,23 +476,17 @@ const Settings: React.FC = () => {
                         </tr>
                     </thead>
                     <tbody className="divide-y divide-white/5 text-sm">
-                        <tr className="hover:bg-white/5 bg-primary-600/5">
-                            <td className="p-4 font-mono text-primary-400">اليوم، 14:30</td>
+                        <tr className="hover:bg-white/5 bg-emerald-600/5">
+                            <td className="p-4 font-mono text-emerald-400">28-10-2024، 10:00</td>
                             <td className="p-4 text-white">System</td>
-                            <td className="p-4 font-bold">إنشاء نقطة رجوع متميزة (Elite Checkpoint)</td>
+                            <td className="p-4 font-bold">تحديث متميز: تفعيل الحصص الكشفية (v2.1)</td>
                             <td className="p-4 text-emerald-400 flex items-center gap-1 font-bold"><CheckCircle2 size={14}/> مكتمل</td>
                         </tr>
                         <tr className="hover:bg-white/5">
-                            <td className="p-4 font-mono text-night-400">2024-10-25 10:30</td>
-                            <td className="p-4 text-white">Admin</td>
-                            <td className="p-4">تحديث البطاقة الفنية</td>
-                            <td className="p-4 text-emerald-400">نجاح</td>
-                        </tr>
-                        <tr className="hover:bg-white/5">
-                            <td className="p-4 font-mono text-night-400">2024-10-25 09:15</td>
-                            <td className="p-4 text-white">FinanceManager</td>
-                            <td className="p-4">تسجيل إيراد جديد</td>
-                            <td className="p-4 text-emerald-400">نجاح</td>
+                            <td className="p-4 font-mono text-primary-400">27-10-2024، 14:30</td>
+                            <td className="p-4 text-white">System</td>
+                            <td className="p-4 font-bold">إنشاء نقطة رجوع متميزة (Elite Checkpoint)</td>
+                            <td className="p-4 text-emerald-400 flex items-center gap-1 font-bold"><CheckCircle2 size={14}/> مكتمل</td>
                         </tr>
                     </tbody>
                 </table>
