@@ -3,19 +3,22 @@ import React, { useState } from 'react';
 import Sidebar from './components/Sidebar';
 import Dashboard from './components/Dashboard';
 import Members from './components/Members';
-import Strategy from './components/Strategy';
 import Units from './components/Units';
 import Finance from './components/Finance';
 import Insurance from './components/Insurance';
 import Discipline from './components/Discipline';
 import Activities from './components/Activities';
 import Camps from './components/Camps';
+import Administration from './components/Administration';
+import Programming from './components/Programming';
+import Reports from './components/Reports';
+import Archive from './components/Archive';
 import Projects from './components/Projects';
 import Ranking from './components/Ranking';
 import Settings from './components/Settings';
 import Equipment from './components/Equipment';
 import LandingPage from './components/LandingPage';
-import { Section, Member, UnitName, MemberRole, Patrol, Transaction, AttendanceSession, Sanction, Event, Project, Badge, PointRecord, RankLevel, AttendanceSettings, Notification, EquipmentItem } from './types';
+import { Section, Member, UnitName, MemberRole, Patrol, Transaction, AttendanceSession, Sanction, Event, Project, Badge, PointRecord, RankLevel, AttendanceSettings, Notification, EquipmentItem, Treasury, BankAccount } from './types';
 import { Bell, CheckCircle2, AlertTriangle, Info, X, Menu, PanelRightOpen } from 'lucide-react';
 
 const App: React.FC = () => {
@@ -76,6 +79,8 @@ const App: React.FC = () => {
   const [transactions, setTransactions] = useState<Transaction[]>([]);
   const [attendance, setAttendance] = useState<AttendanceSession[]>([]);
   const [sanctions, setSanctions] = useState<Sanction[]>([]);
+  const [treasuries, setTreasuries] = useState<Treasury[]>([]);
+  const [bankAccounts, setBankAccounts] = useState<BankAccount[]>([]);
   const [events, setEvents] = useState<Event[]>([
       {
         id: 'act1',
@@ -90,8 +95,12 @@ const App: React.FC = () => {
         goals: 'غرس القيم الكشفية والتدريب على العقد.',
         cost: 2000,
         fee: 50,
+        leaderFee: 100,
         manager: 'القائد أحمد',
-        isClosed: false
+        isClosed: false,
+        activityExpenses: [],
+        additionalFunding: [],
+        surplusTransfers: []
       },
       {
         id: 'cmp1',
@@ -106,8 +115,12 @@ const App: React.FC = () => {
         goals: 'حياة الخلاء والاعتماد على النفس.',
         cost: 15000,
         fee: 500,
+        leaderFee: 500,
         manager: 'القائد محمد',
-        isClosed: false
+        isClosed: false,
+        activityExpenses: [],
+        additionalFunding: [],
+        surplusTransfers: []
       }
   ]);
   const [projects, setProjects] = useState<Project[]>([]);
@@ -147,15 +160,45 @@ const App: React.FC = () => {
               setTransactions([...transactions, trans]);
           }} />;
           case 'DISCIPLINE': return < Discipline attendance={attendance} sanctions={sanctions} members={members} onAddSession={(s) => setAttendance([...attendance, s])} attendanceSettings={attendanceSettings} onUpdateSettings={setAttendanceSettings} />;
-          case 'ACTIVITIES': return <Activities type="ACTIVITY" events={events.filter(e => e.type === 'ACTIVITY')} members={members} onFinancialTransfer={(amount, desc, date, relId) => setTransactions([...transactions, {id: Date.now().toString(), type: 'INCOME', category: 'ACTIVITY', amount, description: desc, date, relatedEntityId: relId}])} globalTransactions={transactions} onAddNotification={addNotification} onTransferSurplus={(amount, entityId, entityTitle) => {
+          case 'ACTIVITIES': return <Activities 
+              type="ACTIVITY" 
+              events={events.filter(e => e.type === 'ACTIVITY')} 
+              members={members} 
+              onFinancialTransfer={(amount, desc, date, relId) => setTransactions([...transactions, {id: Date.now().toString(), type: 'INCOME', category: 'ACTIVITY', amount, description: desc, date, relatedEntityId: relId}])} 
+              globalTransactions={transactions} 
+              onAddNotification={addNotification} 
+              onTransferSurplus={(amount, entityId, entityTitle) => {
                setTransactions([...transactions, {id: Date.now().toString(), type: 'INCOME', category: 'ACTIVITY', amount, description: `تحويل فائض نشاط: ${entityTitle}`, date: new Date().toISOString().split('T')[0], relatedEntityId: entityId}]);
-          }} onUpdateActivity={(e) => setEvents(events.map(ev => ev.id === e.id ? e : ev))} onAddActivity={(e) => setEvents([...events, e])} />;
-          case 'CAMPS': return <Camps camps={events.filter(e => e.type === 'CAMP')} members={members} onUpdateCamp={(c) => setEvents(events.map(ev => ev.id === c.id ? c : ev))} onFinancialTransfer={(amount, desc, date, relId) => setTransactions([...transactions, {id: Date.now().toString(), type: 'INCOME', category: 'CAMP', amount, description: desc, date, relatedEntityId: relId}])} globalTransactions={transactions} onAddNotification={addNotification} onTransferSurplus={(amount, entityId, entityTitle) => {
+              }} 
+              onUpdateActivity={(e) => setEvents(events.map(ev => ev.id === e.id ? e : ev))} 
+              onAddActivity={(e) => setEvents([...events, e])} 
+              treasuries={treasuries}
+              bankAccounts={bankAccounts}
+              equipmentList={equipment}
+              onUpdateEquipment={setEquipment}
+          />;
+          case 'CAMPS': return <Camps 
+              camps={events.filter(e => e.type === 'CAMP')} 
+              members={members} 
+              onUpdateCamp={(c) => setEvents(events.map(ev => ev.id === c.id ? c : ev))} 
+              onFinancialTransfer={(amount, desc, date, relId) => setTransactions([...transactions, {id: Date.now().toString(), type: 'INCOME', category: 'CAMP', amount, description: desc, date, relatedEntityId: relId}])} 
+              globalTransactions={transactions} 
+              onAddNotification={addNotification} 
+              onTransferSurplus={(amount, entityId, entityTitle) => {
                setTransactions([...transactions, {id: Date.now().toString(), type: 'INCOME', category: 'CAMP', amount, description: `تحويل فائض مخيم: ${entityTitle}`, date: new Date().toISOString().split('T')[0], relatedEntityId: entityId}]);
-          }} onAddCamp={(e) => setEvents([...events, e])} />;
+              }} 
+              onAddCamp={(e) => setEvents([...events, e])}
+              treasuries={treasuries}
+              bankAccounts={bankAccounts}
+              equipmentList={equipment}
+              onUpdateEquipment={setEquipment}
+          />;
+          case 'ADMINISTRATION': return <Administration onAddNotification={addNotification} />;
+          case 'PROGRAMMING': return <Programming onAddNotification={addNotification} />;
+          case 'REPORTS': return <Reports onAddNotification={addNotification} members={members} transactions={transactions} events={events} />;
+          case 'ARCHIVE': return <Archive members={members} events={events} transactions={transactions} projects={projects} attendance={attendance} />;
           case 'PROJECTS': return <Projects projects={projects} onAddProject={(p) => setProjects([...projects, p])} />;
           case 'RANKING': return <Ranking members={members} badges={badges} pointsHistory={pointsHistory} rankLevels={rankLevels} patrols={patrols} />;
-          case 'STRATEGY': return <Strategy />;
           case 'EQUIPMENT': return <Equipment items={equipment} members={members} onUpdateEquipment={setEquipment} />;
           case 'SETTINGS': return <Settings />;
           default: return <Dashboard members={members} />;

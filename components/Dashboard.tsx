@@ -213,34 +213,24 @@ const Dashboard: React.FC<DashboardProps> = ({ members, events = [], onNavigate 
                     </div>
                 </div>
 
-                {/* Right Column: Events & Strategy */}
+                {/* Right Column: Events */}
                 <div className="space-y-8">
                     
-                    {/* AI Strategy Card (Featured) */}
-                    <div className="relative overflow-hidden rounded-3xl bg-gradient-to-br from-[#2b1055] to-[#7597de] p-1 shadow-2xl group">
-                        <div className="absolute inset-0 bg-white/5 opacity-0 group-hover:opacity-100 transition-opacity"></div>
-                        <div className="bg-night-900/90 backdrop-blur-xl h-full w-full rounded-[20px] p-6 relative z-10 flex flex-col justify-between">
-                            <div className="absolute top-0 right-0 w-64 h-64 bg-purple-500/20 rounded-full blur-[100px] -translate-y-1/2 translate-x-1/2 pointer-events-none"></div>
-                            
-                            <div>
-                                <div className="flex items-center gap-3 mb-4">
-                                    <div className="w-12 h-12 rounded-xl bg-gradient-to-tr from-purple-500 to-blue-500 flex items-center justify-center shadow-lg shadow-purple-500/30">
-                                        <BrainCircuit className="text-white" size={24} />
-                                    </div>
-                                    <h3 className="text-xl font-bold text-white">Scouts AI</h3>
-                                </div>
-                                <p className="text-night-300 text-sm leading-relaxed mb-6">
-                                    المستشار الذكي جاهز لتحليل بيانات الفوج. احصل على تقرير استراتيجي لتطوير الموارد البشرية والمالية.
-                                </p>
+                    {/* Placeholder Card (Instead of Strategy) */}
+                    <div className="relative overflow-hidden rounded-3xl bg-gradient-to-br from-night-800 to-night-900 p-8 border border-white/5 shadow-2xl">
+                         <div className="flex items-center gap-3 mb-4">
+                            <div className="p-3 bg-primary-600/20 text-primary-400 rounded-xl">
+                                <Target size={24} />
                             </div>
-                            
-                            <button 
-                                onClick={() => onNavigate?.('STRATEGY')}
-                                className="w-full py-4 rounded-xl bg-gradient-to-r from-purple-600 to-blue-600 text-white font-bold shadow-lg shadow-purple-900/40 hover:shadow-purple-900/60 hover:scale-[1.02] transition-all flex items-center justify-center gap-2 group-hover:gap-3"
-                            >
-                                توليد التقرير <ArrowLeft size={18} />
-                            </button>
-                        </div>
+                            <h3 className="text-xl font-bold text-white font-['Cairo']">أهداف الموسم</h3>
+                         </div>
+                         <p className="text-night-400 text-sm leading-relaxed mb-4">
+                            تابع تقدم الفوج نحو تحقيق أهدافه التربوية والميدانية المسطرة لهذا الموسم الكشفي.
+                         </p>
+                         <div className="w-full bg-night-950 h-2 rounded-full overflow-hidden">
+                             <div className="bg-primary-500 h-full w-[45%]" />
+                         </div>
+                         <p className="text-[10px] text-night-500 mt-2 font-bold uppercase tracking-widest text-left">45% مكتمل</p>
                     </div>
 
                     {/* Upcoming Events List */}

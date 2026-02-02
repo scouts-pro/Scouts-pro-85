@@ -29,6 +29,7 @@
             },
             fontFamily: {
               sans: ['Cairo', 'sans-serif'],
+              mono: ['Cairo', 'monospace'],
             },
             animation: {
               'fade-in': 'fadeIn 0.3s ease-out',
@@ -49,24 +50,32 @@
       }
     </script>
     <style>
+      /* إجبار خط Cairo على كل شيء دون استثناء */
+      * {
+        font-family: 'Cairo', sans-serif !important;
+        font-style: normal !important;
+        scrollbar-width: thin;
+        scrollbar-color: #334155 transparent;
+      }
+
       html {
         scroll-behavior: smooth;
       }
       body {
         background-color: #0f172a;
         color: #f1f5f9;
-        font-family: 'Cairo', sans-serif;
-        font-style: normal !important; 
+        font-family: 'Cairo', sans-serif !important;
         overflow-x: hidden;
         text-rendering: optimizeLegibility;
         -webkit-font-smoothing: antialiased;
         -moz-osx-font-smoothing: grayscale;
       }
-      * {
-        font-style: normal !important;
-        scrollbar-width: thin;
-        scrollbar-color: #334155 transparent;
+      
+      /* ضمان أن الأرقام والمبالغ المالية المنسقة بـ font-mono تلتزم بـ Cairo */
+      .font-mono {
+        font-family: 'Cairo', monospace !important;
       }
+
       /* Custom Scrollbar for Night Mode */
       ::-webkit-scrollbar {
         width: 6px;

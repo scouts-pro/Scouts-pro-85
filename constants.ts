@@ -46,7 +46,10 @@ export const NAV_ITEMS = [
   { id: 'EQUIPMENT', label: 'العتاد واللباس', icon: 'Box' },
   { id: 'ACTIVITIES', label: 'الأنشطة', icon: 'Calendar' },
   { id: 'CAMPS', label: 'المخيمات', icon: 'Map' },
-  { id: 'STRATEGY', label: 'الاستراتيجية', icon: 'BrainCircuit' },
+  { id: 'ADMINISTRATION', label: 'الإدارة', icon: 'Briefcase' },
+  { id: 'PROGRAMMING', label: 'البرمجة', icon: 'LayoutList' },
+  { id: 'REPORTS', label: 'التقارير', icon: 'FilePieChart' },
+  { id: 'ARCHIVE', label: 'الأرشيف', icon: 'Archive' },
   { id: 'PROJECTS', label: 'المشاريع', icon: 'Briefcase' },
   { id: 'SETTINGS', label: 'الإعدادات', icon: 'Settings' },
 ];

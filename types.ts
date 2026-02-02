@@ -4,8 +4,8 @@
 export enum MemberRole {
   SCOUT = 'كشاف',
   LEADER = 'قائد',
-  AFFILIATE = 'منخرط', // Used for Honorary as per previous context, or mapped logically
-  HONORARY = 'عضو شرفي' // Explicitly added for the new form requirement
+  AFFILIATE = 'منخرط', 
+  HONORARY = 'عضو شرفي'
 }
 
 export enum UnitName {
@@ -24,10 +24,9 @@ export enum UnitName {
 export interface Member {
   id: string;
   scoutYear: string;
-  // Personal
-  fullName: string; // الاسم الكامل (اللقب + الاسم)
-  fullNameEn?: string; // الاسم باللاتينية
-  role: MemberRole | string; // Allowing string for flexibility
+  fullName: string;
+  fullNameEn?: string;
+  role: MemberRole | string;
   image: string;
   gender: 'ذكر' | 'أنثى';
   birthDate: string;
@@ -35,35 +34,17 @@ export interface Member {
   age: number;
   phone?: string;
   email?: string;
-  address: string; // Wilaya
-  addressDetail?: string; // Free text address
+  address: string;
+  addressDetail?: string;
   bloodType: string;
-  
-  // IDs
   membershipNumber: string;
   insuranceNumber: string;
   joinDate?: string;
-  
-  // Status Flags
   isActive: boolean; 
-  scoutStatus?: 'نشط' | 'غير نشط' | 'معلق'; // Detailed status
+  scoutStatus?: 'نشط' | 'غير نشط' | 'معلق';
   subscriptionPaid: boolean; 
   insurancePaid: boolean; 
   financialNotes?: string;
-
-  // Health
-  healthStatus?: string; // Good, Medium, Bad...
-  healthStatusNote?: string;
-  chronicDiseases?: string;
-  allergies?: string;
-  vaccines?: string;
-  emergencyContact?: string;
-  healthNotes?: string;
-  // New Health Fields
-  disabilityType?: string;
-  disabilityNote?: string;
-
-  // Family (Scout Specific mostly)
   guardianName: string;
   guardianJob?: string;
   guardianPhone: string;
@@ -71,72 +52,122 @@ export interface Member {
   motherJob?: string;
   guardianRelation: string;
   siblingsCount: number;
-  birthOrder: number; // 1 = First, etc.
+  birthOrder: number;
   birthOrderLabel?: 'الأول' | 'الأوسط' | 'الأخير' | 'وحيد';
-  familyStatus?: string; // Married, Single, Divorced...
-  familyStatusNote?: string;
-  isOrphan?: boolean;
-  stepParentStatus?: string; // Lives with stepmother/stepfather
-  
-  // New Family Fields for Leaders/Honorary
-  schoolingChildren?: string;
-  scoutChildren?: string;
-
-  // Social
-  financialStatus: 'ميسورة' | 'متوسطة' | 'دون المتوسطة' | 'جيد جدًا' | 'جيد' | 'يحتاج دعم' | string;
-  financialStatusNote?: string;
-  housingType: string;
-  livingEnvironment: string;
-  familyMembersCount: number;
-  specialSocialCases: string;
-  socialNotes: string;
-  job?: string; // For Leaders/Honorary
-  roomCount?: number; // Added explicitly
-
-  // Academic
+  familyStatus?: string;
+  studyStatus: string;
   educationLevel: string;
   institution: string;
-  studyStatus: string;
-  specialty?: string; // For university/leaders
-  classSection?: string; // القسم
+  unit: UnitName | string;
+  patrol: string;
+  scoutMission: string;
+  points: number;
+  earnedBadges: string[];
+  trainingHistory?: string;
+  participationHistory?: string;
+  otherActivities?: string;
+  rank: string;
+  financialStatus?: string;
+  isOrphan?: boolean;
+  healthStatus?: string;
+  chronicDiseases?: string;
+  allergies?: string;
+  housingType?: string;
+  familyMembersCount?: number;
+  roomCount?: number;
+  specialSocialCases?: string;
+  livingEnvironment?: string;
+  hobbies?: string;
+  activityIds?: string[];
+  scoutJob?: string;
+  disabilityType?: string;
+  classSection?: string;
   graduationYear?: string;
   stopYear?: string;
-
-  // Scout Specific
-  unit: UnitName | string;
-  patrol: string; // Sadasia or Talia
-  scoutMission: string; // Member/Leader specific mission
-  scoutJob: string;
-  rank: string;
-  hobbies: string;
-  activityIds: string[];
-  
-  // New Activity Fields
-  trainingHistory?: string; // الدورات
-  participationHistory?: string; // المشاركات
-  otherActivities?: string; // وغيرها
-
-  // Honorary
-  honoraryTitle?: string;
-  honoraryReason?: string;
-
-  // Ranking & Points
-  points: number;
-  earnedBadges: string[]; // IDs of badges
+  specialty?: string;
+  vaccines?: string;
+  emergencyContact?: string;
+  healthNotes?: string;
+  socialNotes?: string;
+  isOrphanMember?: boolean;
+  job?: string;
+  schoolingChildren?: string;
+  scoutChildren?: string;
 }
 
-// Units & Patrols
 export interface Patrol {
   id: string;
   name: string;
-  slogan: string; // شعار الطليعة (نص)
-  chant?: string; // الصيحة (منفصلة)
+  slogan: string;
+  chant?: string;
   logo: string;
-  unit: UnitName;
-  leaderId?: string; // العريف/السادوس
+  unit: UnitName | string;
+  leaderId?: string;
 }
 
-// Finance
+export interface Treasury {
+  id: string;
+  name: string;
+  isMain: boolean;
+  balance: number;
+  manager: string;
+  image?: string;
+}
+
+export interface BankAccount {
+  id: string;
+  bankName: string;
+  accountNumber: string;
+  currency: string;
+  manager: string;
+  balance: number;
+  image?: string;
+  branchName?: string;
+  iban?: string;
+  accountType?: string;
+}
+
+export type FinanceOpType = 'INCOME' | 'EXPENSE' | 'DEPOSIT' | 'WITHDRAWAL' | 'TRANSFER';
+export type ApprovalStatus = 'PENDING' | 'APPROVED' | 'REJECTED';
+
+export interface ActivityExpense {
+  id: string;
+  type: 'نقل' | 'تغذية' | 'لوازم' | 'كراء' | 'خدمات' | 'طباعة' | 'تجهيزات' | 'مصاريف أخرى';
+  amount: number;
+  date: string;
+  purpose: string;
+  source: string;
+  day?: string; 
+  notes?: string;
+}
+
+export interface ActivityFundingSource {
+  id: string;
+  label: string;
+  amount: number;
+  date: string;
+}
+
+export interface FinanceOperation {
+  id: string;
+  transferNumber?: string; 
+  type: FinanceOpType;
+  date: string;
+  amount: number;
+  responsible: string;
+  notes: string;
+  category: 'INSURANCE' | 'SUBSCRIPTION' | 'ACTIVITY' | 'CAMP' | 'AID' | 'TRANSFER' | 'OTHER';
+  approvalStatus: ApprovalStatus;
+  approvedBy?: string[]; 
+  treasuryId?: string; 
+  transferType?: 'TREASURY' | 'ACTIVITY' | 'CAMP'; 
+  bankAccountId?: string;
+  source?: 'بلدية' | 'ولاية' | 'DJS' | 'أخرى' | string;
+  proofLink?: string; 
+  relatedEntityId?: string; 
+  destination: 'المحافظة الولائية' | 'القيادة العامة' | 'خزينة أخرى' | 'نشاط' | 'مخيم' | string;
+}
+
 export interface Transaction {
   id: string;
   type: 'INCOME' | 'EXPENSE';
@@ -146,16 +177,6 @@ export interface Transaction {
   description: string;
   relatedEntityId?: string; 
 }
-
-// Discipline
-export interface AttendanceSettings {
-  presentPoints: number;
-  latePoints: number;
-  absentPoints: number; // غياب
-  unjustifiedPoints: number; // غياب غير مبرر
-}
-
-export type AttendanceStatus = 'حاضر' | 'متأخر' | 'غائب' | 'غياب غير مبرر';
 
 export interface AttendanceSession {
   id: string;
@@ -176,7 +197,6 @@ export interface Sanction {
   date: string;
 }
 
-// Activities & Camps
 export interface Event {
   id: string;
   title: string;
@@ -185,92 +205,79 @@ export interface Event {
   location: string;
   coverImage: string;
   targetUnits: UnitName[];
-  participants: string[]; // Member IDs
+  participants: string[];
   leaderIds: string[];
   goals: string;
   cost: number;
-  fee?: number; // رسوم الاشتراك للفرد
-  manager?: string; // مسؤول النشاط
-  isClosed?: boolean; // New: Financial Closure Status
-  closureDate?: string; // New: Date of closure
+  fee?: number;
+  leaderFee?: number;
+  manager?: string;
+  isClosed?: boolean;
+  activityId?: string;
+  activityType?: string;
+  startDate?: string;
+  endDate?: string;
+  activityTime?: string;
+  slogan?: string;
+  description?: string;
+  maxParticipants?: number;
+  logoImage?: string;
+  managerId?: string;
+  leaderResponsibilities?: Record<string, string>;
+  activityExpenses?: ActivityExpense[];
+  additionalFunding?: ActivityFundingSource[];
+  surplusTransfers?: { amount: number; date: string; destination: string; status: ApprovalStatus }[];
 }
 
-// Projects
 export interface Project {
   id: string;
   name: string;
-  managerId: string; // Member ID
+  managerId: string;
   budget: number;
   profit: number;
   status: 'قيد التخطيط' | 'جاري' | 'مكتمل';
   description: string;
 }
 
-// --- EQUIPMENT & UNIFORMS (STRICT UPDATE) ---
-
-export type EquipmentStatus = 
-  | 'متاح' 
-  | 'مسلم' // Issued / Loaned
-  | 'مخصص' // Reserved
-  | 'صيانة' // Maintenance
-  | 'تالف' 
-  | 'مفقود' 
-  | 'متلف'; // Written-off
-
-export type DeliveryType = 
-  | 'دائم' // Permanent (Uniforms)
-  | 'مؤقت'; // Temporary (Activity/Camp)
+export type EquipmentStatus = 'متاح' | 'مسلم' | 'مخصص' | 'صيانة' | 'تالف' | 'مفقود' | 'متلف';
+export type DeliveryType = 'دائم' | 'مؤقت';
 
 export interface EquipmentItem {
-  id: string; // Internal System ID
-  uniqueId: string; // The Unique Visual ID (e.g., EQ-1001) - MANDATORY
-  barcode?: string;
-  
+  id: string;
+  uniqueId: string;
   name: string;
-  category: 'لباس' | 'عتاد'; // Strict Separation
-  subCategory?: string; // e.g., 'Camping', 'Kitchen', 'Shirt'
-  
-  // Details for Uniforms/Equipment
-  size?: string; // XS, S, M, L...
-  color?: string; 
-  notes?: string;
-
-  status: EquipmentStatus;
+  category: 'لباس' | 'عتاد';
+  subCategory?: string;
+  status: EquipmentStatus | string;
   condition: 'جديد' | 'مستعمل' | 'يحتاج صيانة' | 'تالف';
-  
-  location: string; // Warehouse Name
-  
-  // Assignment Logic
-  assignedTo?: string; // Member ID (Must exist if status is 'مسلم')
-  deliveryType?: DeliveryType;
+  location: string;
+  assignedTo?: string;
+  deliveryType?: DeliveryType | string;
   assignmentDate?: string;
-  returnDate?: string; // Mandatory if 'مؤقت'
-  relatedActivityId?: string; // Optional: Link to Activity/Camp
-  
-  // Meta
+  returnDate?: string;
+  size?: string;
+  color?: string;
   description?: string;
-  image?: string;
   purchaseDate?: string;
-  price?: number;
+  eventId?: string; 
+  fineAmount?: number; 
+  issuedBy?: string; 
 }
 
-// Ranking System
 export interface Badge {
   id: string;
   name: string;
-  description: string;
-  imageIcon: string; // Lucide icon name or image url
   pointsValue: number;
-  requirements: string;
+  description?: string;
 }
 
 export interface PointRecord {
   id: string;
   memberId: string;
-  source: 'ACTIVITY' | 'CAMP' | 'DISCIPLINE' | 'ATTENDANCE' | 'BADGE';
-  reason: string;
-  amount: number; // Positive or negative
+  amount: number;
   date: string;
+  reason?: string;
+  source?: string;
 }
 
 export interface RankLevel {
@@ -278,18 +285,110 @@ export interface RankLevel {
   name: string;
   minPoints: number;
   color: string;
-  icon: string;
 }
 
-// Notifications
+export interface AttendanceSettings {
+  presentPoints: number;
+  latePoints: number;
+  absentPoints: number;
+  unjustifiedPoints: number;
+}
+
+export type AttendanceStatus = 'حاضر' | 'متأخر' | 'غائب' | 'غياب غير مبرر';
+
 export interface Notification {
   id: string;
   title: string;
   message: string;
   type: 'SUCCESS' | 'WARNING' | 'INFO';
   timestamp: number;
-  action?: () => void; // Action callback (e.g. Approve)
+  action?: () => void;
   actionLabel?: string;
+}
+
+// --- Administration Section Types ---
+
+export interface Correspondence {
+  id: string;
+  type: 'صادر' | 'وارد';
+  refNumber: string;
+  date: string;
+  senderReceiver: string;
+  subject: string;
+  attachments?: string[];
+}
+
+export interface MissionOrder {
+  id: string;
+  orderNumber: string;
+  mission: string;
+  destination: string;
+  reason: string;
+  startDate: string;
+  endDate: string;
+  responsibleLeader: string;
+  leaderDOB: string;
+  idCardNumber: string;
+  scoutJob: string;
+  companions: string;
+  transportType: string;
+  transportNumber: string;
+}
+
+export interface Announcement {
+  id: string;
+  type: 'تعليمات داخلية' | 'أخبار ومراسلات' | 'تحديثات الأنشطة والمخيمات' | 'التواصل العام';
+  title: string;
+  content: string;
+  date: string;
+  author: string;
+}
+
+export interface Meeting {
+  id: string;
+  type: 'اجتماعات قيادية' | 'اجتماعات وحدات أو طلائع' | 'اجتماعات استثنائية أو خاصة';
+  date: string;
+  time: string;
+  location: string;
+  attendees: string[];
+  topics: string;
+}
+
+// --- Archive Section Types ---
+
+export interface ArchiveDocument {
+  id: string;
+  name: string;
+  type: 'عقد' | 'مراسلة' | 'قرار' | 'ترخيص' | 'تحويل مالي' | 'فاتورة' | 'إيصال دفع' | 'ميزانية' | string;
+  year: string;
+  department: string;
+  relatedEntityId?: string;
+  date: string;
+  fileLink?: string;
+}
+
+// --- Programming Section Types ---
+
+export type ProgramStatus = 'مخطط' | 'جاري' | 'مكتمل' | 'ملغى';
+
+export interface ProgramActivity {
+  id: string;
+  name: string;
+  type: string;
+  startDate: string;
+  endDate: string;
+  responsible: string;
+  expectedParticipants: number;
+  status: ProgramStatus;
+  progress: number;
+  description: string;
+  team: string[];
+  timeline: { title: string; time: string; status: string }[];
+  plannedCost: number;
+  actualCost: number;
+  strengths: string[];
+  challenges: string[];
+  evaluationNotes: string;
 }
 
 export type Section = 
@@ -302,7 +401,10 @@ export type Section =
   | 'RANKING'
   | 'ACTIVITIES'
   | 'CAMPS'
-  | 'STRATEGY'
+  | 'ADMINISTRATION'
+  | 'PROGRAMMING'
+  | 'REPORTS'
+  | 'ARCHIVE'
   | 'PROJECTS'
   | 'EQUIPMENT'
   | 'SETTINGS';
