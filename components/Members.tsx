@@ -14,14 +14,6 @@ import {
     Receipt, Shirt, Wallet, Box, Globe, Gavel, FileText, Smartphone, Mail, Flag, Clock, Building, Layers, AlertTriangle, Home
 } from 'lucide-react';
 
-interface MembersProps {
-  members: Member[];
-  onAddMember: (member: Member) => void;
-  onUpdateMember: (member: Member) => void;
-  onDeleteMember: (id: string) => void;
-  equipmentList?: EquipmentItem[]; 
-}
-
 // --- Helper Functions ---
 const getAge = (birthDate: string) => {
     if (!birthDate) return 0;
@@ -122,6 +114,35 @@ const SmartSelect = ({ label, value, onChange, options, placeholder, required = 
         </div>
     );
 };
+
+// --- Fixed Components Outside Render (Prevents focus loss) ---
+const InputWrapper = ({ label, children, required = false }: any) => (
+    <div className="space-y-2">
+        <label className="text-sm font-bold text-night-300 flex items-center gap-1 font-sans">
+            {label} {required && <span className="text-red-500">*</span>}
+        </label>
+        {children}
+    </div>
+);
+
+const TextInput = ({ field, placeholder, type = "text", required = false, value, onChange }: any) => (
+    <input 
+        type={type}
+        required={required}
+        className="w-full h-12 bg-night-900 border border-white/10 rounded-xl px-4 text-white focus:border-primary-500 outline-none font-sans"
+        placeholder={placeholder}
+        value={value || ''}
+        onChange={(e) => onChange(field, e.target.value)}
+    />
+);
+
+interface MembersProps {
+  members: Member[];
+  onAddMember: (member: Member) => void;
+  onUpdateMember: (member: Member) => void;
+  onDeleteMember: (id: string) => void;
+  equipmentList?: EquipmentItem[]; 
+}
 
 // --- Main Component ---
 const Members: React.FC<MembersProps> = ({ members, onAddMember, onUpdateMember, onDeleteMember, equipmentList = [] }) => {
@@ -259,44 +280,24 @@ const Members: React.FC<MembersProps> = ({ members, onAddMember, onUpdateMember,
 
   // --- Form Content Renderer ---
   const renderFormContent = () => {
-    const InputWrapper = ({ label, children, required = false }: any) => (
-        <div className="space-y-2">
-            <label className="text-sm font-bold text-night-300 flex items-center gap-1 font-sans">
-                {label} {required && <span className="text-red-500">*</span>}
-            </label>
-            {children}
-        </div>
-    );
-
-    const TextInput = ({ field, placeholder, type = "text", required = false }: any) => (
-        <input 
-            type={type}
-            required={required}
-            className="w-full h-12 bg-night-900 border border-white/10 rounded-xl px-4 text-white focus:border-primary-500 outline-none font-sans"
-            placeholder={placeholder}
-            value={formData[field as keyof Member] as string || ''}
-            onChange={(e) => handleInputChange(field as keyof Member, e.target.value)}
-        />
-    );
-
     switch(formTab) {
         case 0: // الشخصية
             return (
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6 animate-fade-in">
                     <InputWrapper label="الاسم الكامل (بالعربية)" required>
-                        <TextInput field="fullName" placeholder="اللقب + الاسم" required />
+                        <TextInput field="fullName" placeholder="اللقب + الاسم" required value={formData.fullName} onChange={handleInputChange} />
                     </InputWrapper>
                     <InputWrapper label="الاسم الكامل (باللاتينية)">
-                        <TextInput field="fullNameEn" placeholder="Full Name in Latin" />
+                        <TextInput field="fullNameEn" placeholder="Full Name in Latin" value={formData.fullNameEn} onChange={handleInputChange} />
                     </InputWrapper>
                     <InputWrapper label="الجنس" required>
                         <CustomDropdown options={['ذكر', 'أنثى']} value={formData.gender} onChange={(v:any) => handleInputChange('gender', v)} />
                     </InputWrapper>
                     <InputWrapper label="تاريخ الميلاد" required>
-                        <TextInput field="birthDate" type="date" required />
+                        <TextInput field="birthDate" type="date" required value={formData.birthDate} onChange={handleInputChange} />
                     </InputWrapper>
                     <InputWrapper label="مكان الميلاد">
-                        <TextInput field="birthPlace" placeholder="مكان الميلاد" />
+                        <TextInput field="birthPlace" placeholder="مكان الميلاد" value={formData.birthPlace} onChange={handleInputChange} />
                     </InputWrapper>
                     <InputWrapper label="فصيلة الدم">
                         <CustomDropdown options={BLOOD_TYPES} value={formData.bloodType} onChange={(v:any) => handleInputChange('bloodType', v)} />
@@ -305,13 +306,13 @@ const Members: React.FC<MembersProps> = ({ members, onAddMember, onUpdateMember,
                         <CustomDropdown options={ALGERIA_WILAYAS} value={formData.address} onChange={(v:any) => handleInputChange('address', v)} />
                     </InputWrapper>
                     <InputWrapper label="العنوان بالتفصيل">
-                        <TextInput field="addressDetail" placeholder="رقم الباب، الشارع..." />
+                        <TextInput field="addressDetail" placeholder="رقم الباب، الشارع..." value={formData.addressDetail} onChange={handleInputChange} />
                     </InputWrapper>
                     <InputWrapper label="رقم الهاتف">
-                        <TextInput field="phone" placeholder="0XXXXXXX" type="tel" />
+                        <TextInput field="phone" placeholder="0XXXXXXX" type="tel" value={formData.phone} onChange={handleInputChange} />
                     </InputWrapper>
                     <InputWrapper label="البريد الإلكتروني">
-                        <TextInput field="email" placeholder="example@mail.com" type="email" />
+                        <TextInput field="email" placeholder="example@mail.com" type="email" value={formData.email} onChange={handleInputChange} />
                     </InputWrapper>
                 </div>
             );
@@ -319,22 +320,22 @@ const Members: React.FC<MembersProps> = ({ members, onAddMember, onUpdateMember,
             return (
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6 animate-fade-in">
                     <InputWrapper label="اسم الولي">
-                        <TextInput field="guardianName" placeholder="الاسم الكامل للولي" />
+                        <TextInput field="guardianName" placeholder="الاسم الكامل للولي" value={formData.guardianName} onChange={handleInputChange} />
                     </InputWrapper>
                     <InputWrapper label="صلة القرابة">
                         <CustomDropdown options={RELATIONSHIPS} value={formData.guardianRelation} onChange={(v:any) => handleInputChange('guardianRelation', v)} />
                     </InputWrapper>
                     <InputWrapper label="هاتف الولي">
-                        <TextInput field="guardianPhone" placeholder="0XXXXXXX" type="tel" />
+                        <TextInput field="guardianPhone" placeholder="0XXXXXXX" type="tel" value={formData.guardianPhone} onChange={handleInputChange} />
                     </InputWrapper>
                     <InputWrapper label="وظيفة الولي">
-                        <TextInput field="guardianJob" placeholder="وظيفة الولي" />
+                        <TextInput field="guardianJob" placeholder="وظيفة الولي" value={formData.guardianJob} onChange={handleInputChange} />
                     </InputWrapper>
                     <InputWrapper label="اسم الأم">
-                        <TextInput field="motherName" placeholder="الاسم واللقب" />
+                        <TextInput field="motherName" placeholder="الاسم واللقب" value={formData.motherName} onChange={handleInputChange} />
                     </InputWrapper>
                     <InputWrapper label="وظيفة الأم">
-                        <TextInput field="motherJob" placeholder="وظيفة الأم" />
+                        <TextInput field="motherJob" placeholder="وظيفة الأم" value={formData.motherJob} onChange={handleInputChange} />
                     </InputWrapper>
                     <InputWrapper label="عدد الإخوة">
                         <input type="number" className="w-full h-12 bg-night-900 border border-white/10 rounded-xl px-4 text-white outline-none" value={formData.siblingsCount || 0} onChange={(e)=>handleInputChange('siblingsCount', parseInt(e.target.value))} />
@@ -377,13 +378,13 @@ const Members: React.FC<MembersProps> = ({ members, onAddMember, onUpdateMember,
                         />
                     </InputWrapper>
                     <InputWrapper label="رقم العضوية">
-                        <TextInput field="membershipNumber" />
+                        <TextInput field="membershipNumber" value={formData.membershipNumber} onChange={handleInputChange} />
                     </InputWrapper>
                     <InputWrapper label="رقم التأمين">
-                        <TextInput field="insuranceNumber" />
+                        <TextInput field="insuranceNumber" value={formData.insuranceNumber} onChange={handleInputChange} />
                     </InputWrapper>
                     <InputWrapper label="تاريخ الانخراط">
-                        <TextInput field="joinDate" type="date" />
+                        <TextInput field="joinDate" type="date" value={formData.joinDate} onChange={handleInputChange} />
                     </InputWrapper>
                     <InputWrapper label="حالة الانخراط">
                         <CustomDropdown options={['نشط', 'غير نشط', 'معلق']} value={formData.scoutStatus} onChange={(v:any) => handleInputChange('scoutStatus', v)} />
@@ -397,19 +398,19 @@ const Members: React.FC<MembersProps> = ({ members, onAddMember, onUpdateMember,
                         <CustomDropdown options={EDUCATIONAL_LEVELS} value={formData.educationLevel} onChange={(v:any) => handleInputChange('educationLevel', v)} />
                     </InputWrapper>
                     <InputWrapper label="المؤسسة التعليمية">
-                        <TextInput field="institution" placeholder="اسم المدرسة/الجامعة" />
+                        <TextInput field="institution" placeholder="اسم المدرسة/الجامعة" value={formData.institution} onChange={handleInputChange} />
                     </InputWrapper>
                     <InputWrapper label="التخصص">
-                        <TextInput field="specialty" placeholder="التخصص الدراسي" />
+                        <TextInput field="specialty" placeholder="التخصص الدراسي" value={formData.specialty} onChange={handleInputChange} />
                     </InputWrapper>
                     <InputWrapper label="الحالة الدراسية">
                         <CustomDropdown options={['يزاول', 'متخرج', 'منقطع']} value={formData.studyStatus} onChange={(v:any) => handleInputChange('studyStatus', v)} />
                     </InputWrapper>
                     <InputWrapper label="القسم/السنة">
-                        <TextInput field="classSection" placeholder="مثال: سنة ثالثة" />
+                        <TextInput field="classSection" placeholder="مثال: سنة ثالثة" value={formData.classSection} onChange={handleInputChange} />
                     </InputWrapper>
                     <InputWrapper label="سنة التخرج/الانقطاع">
-                        <TextInput field="graduationYear" placeholder="YYYY" />
+                        <TextInput field="graduationYear" placeholder="YYYY" value={formData.graduationYear} onChange={handleInputChange} />
                     </InputWrapper>
                 </div>
             );
@@ -420,7 +421,7 @@ const Members: React.FC<MembersProps> = ({ members, onAddMember, onUpdateMember,
                         <CustomDropdown options={HEALTH_STATUS_OPTIONS} value={formData.healthStatus} onChange={(v:any) => handleInputChange('healthStatus', v)} />
                     </InputWrapper>
                     <InputWrapper label="رقم اتصال الطوارئ">
-                        <TextInput field="emergencyContact" placeholder="0XXXXXXX" type="tel" />
+                        <TextInput field="emergencyContact" placeholder="0XXXXXXX" type="tel" value={formData.emergencyContact} onChange={handleInputChange} />
                     </InputWrapper>
                     <InputWrapper label="الأمراض المزمنة">
                         <textarea className="w-full h-24 bg-night-900 border border-white/10 rounded-xl p-3 text-white outline-none" value={formData.chronicDiseases || ''} onChange={(e)=>handleInputChange('chronicDiseases', e.target.value)} placeholder="اذكر الأمراض إن وجدت..." />
@@ -429,10 +430,10 @@ const Members: React.FC<MembersProps> = ({ members, onAddMember, onUpdateMember,
                         <textarea className="w-full h-24 bg-night-900 border border-white/10 rounded-xl p-3 text-white outline-none" value={formData.allergies || ''} onChange={(e)=>handleInputChange('allergies', e.target.value)} placeholder="اذكر أنواع الحساسية إن وجدت..." />
                     </InputWrapper>
                     <InputWrapper label="اللقاحات">
-                        <TextInput field="vaccines" placeholder="اللقاحات المستلمة" />
+                        <TextInput field="vaccines" placeholder="اللقاحات المستلمة" value={formData.vaccines} onChange={handleInputChange} />
                     </InputWrapper>
                     <InputWrapper label="نوع الإعاقة">
-                        <TextInput field="disabilityType" placeholder="اترك فارغاً إن لم يوجد" />
+                        <TextInput field="disabilityType" placeholder="اترك فارغاً إن لم يوجد" value={formData.disabilityType} onChange={handleInputChange} />
                     </InputWrapper>
                 </div>
             );

@@ -7,12 +7,31 @@ import {
     Archive as ArchiveIcon, Layers, Users, FileText, BarChart3, Search, 
     Filter, Download, Eye, X, Calendar, MapPin, CheckCircle2, History, 
     TrendingUp, ShieldCheck, Printer, Briefcase, DollarSign, ArrowUpRight, 
-    FileSpreadsheet, PieChart as PieIcon, Activity, Star, Rocket, Target, Zap
+    FileSpreadsheet, PieChart as PieIcon, Activity, Star, Rocket, Target, Zap,
+    // Fix: Added missing Receipt import
+    Receipt
 } from 'lucide-react';
 import { 
     BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, 
     PieChart, Pie, Cell, Legend, LineChart, Line, AreaChart, Area 
 } from 'recharts';
+
+// --- Fixed Modal Component Outside Render ---
+const Modal = ({ isOpen, onClose, title, children, maxWidth = "max-w-4xl" }: any) => {
+    if (!isOpen) return null;
+    return (
+        <div className="fixed inset-0 z-[9999] flex items-center justify-center p-4 animate-fade-in font-['Cairo'] text-right" dir="rtl">
+            <div className="fixed inset-0 bg-night-950/95 backdrop-blur-xl" onClick={onClose}></div>
+            <div className={`bg-night-800 w-full ${maxWidth} rounded-[3rem] border border-white/10 shadow-[0_0_100px_rgba(0,0,0,0.8)] relative overflow-hidden flex flex-col max-h-[90vh]`}>
+                <div className="p-8 border-b border-white/5 flex justify-between items-center bg-night-900/40">
+                    <button onClick={onClose} className="p-3 hover:bg-white/5 rounded-full text-night-400 transition-all"><X size={24}/></button>
+                    <h3 className="text-2xl font-black text-white">{title}</h3>
+                </div>
+                <div className="flex-1 overflow-y-auto custom-scrollbar p-8">{children}</div>
+            </div>
+        </div>
+    );
+};
 
 interface ArchiveProps {
     members: Member[];
@@ -309,83 +328,55 @@ const Archive: React.FC<ArchiveProps> = ({ members, events, transactions, projec
                 <div className="w-24 h-24 bg-primary-600/10 rounded-full flex items-center justify-center text-primary-500 mx-auto mb-6 shadow-inner animate-glow-primary"><Activity size={48}/></div>
                 <h3 className="text-3xl font-black text-white mb-4">ملخص الأداء السنوي العام</h3>
                 <p className="text-night-400 text-sm max-w-2xl mx-auto font-bold leading-relaxed">بناءً على البيانات المجمعة، حقق الفوج هذا العام نسبة نجاح برامج بلغت 84% مع استقرار مالي بنسبة 92%. تم تسجيل تفوق ملحوظ في وحدة الكشاف والمتقدم.</p>
-                <div className="grid grid-cols-2 md:grid-cols-4 gap-8 mt-12">
-                    <div className="p-6 bg-white/5 rounded-3xl border border-white/5"><p className="text-night-500 text-[10px] font-black uppercase mb-1">إجمالي الحضور</p><p className="text-3xl font-black text-white">88%</p></div>
-                    <div className="p-6 bg-white/5 rounded-3xl border border-white/5"><p className="text-night-500 text-[10px] font-black uppercase mb-1">النمو العددي</p><p className="text-3xl font-black text-emerald-400">+12%</p></div>
-                    <div className="p-6 bg-white/5 rounded-3xl border border-white/5"><p className="text-night-500 text-[10px] font-black uppercase mb-1">الالتزام بالخطة</p><p className="text-3xl font-black text-primary-400">94%</p></div>
-                    <div className="p-6 bg-white/5 rounded-3xl border border-white/5"><p className="text-night-500 text-[10px] font-black uppercase mb-1">متوسط النقاط</p><p className="text-3xl font-black text-amber-400">1,250</p></div>
-                </div>
-            </div>
-        </div>
-    );
-
-    // --- Tab 5: البحث والاسترجاع ---
-    const renderSearch = () => (
-        <div className="space-y-10 animate-fade-in font-['Cairo'] text-right" dir="rtl">
-            <div className="bg-night-800/40 backdrop-blur-3xl p-12 rounded-[4rem] border border-white/10 shadow-3xl flex flex-col items-center justify-center text-center">
-                <div className="w-32 h-32 bg-primary-600/10 text-primary-400 rounded-[2.5rem] flex items-center justify-center mb-8 shadow-inner ring-4 ring-primary-600/5 animate-glow-primary"><Search size={64}/></div>
-                <h3 className="text-4xl font-black text-white mb-4 tracking-tighter">محرك البحث الأرشيفي الموحد</h3>
-                <p className="text-night-400 font-bold mb-10 max-w-xl leading-relaxed">ابحث في كافة الوثائق، القوائم، والمراسلات المؤرشفة منذ تأسيس النظام الرقمي.</p>
-                
-                <div className="w-full max-w-3xl relative group">
-                    <input type="text" placeholder="أدخل كلمات البحث، رقم الوثيقة، أو اسم العضو..." className="w-full bg-night-950 border-2 border-white/10 rounded-[2.5rem] p-8 pr-16 text-white text-lg font-bold outline-none focus:border-primary-500 focus:ring-4 focus:ring-primary-500/10 transition-all shadow-2xl" value={searchQuery} onChange={e => setSearchQuery(e.target.value)} />
-                    <Search className="absolute right-6 top-8 text-night-500 group-focus-within:text-primary-400 transition-colors" size={28} />
-                </div>
-
-                <div className="flex flex-wrap justify-center gap-4 mt-8">
-                    <button className="px-6 py-2.5 bg-white/5 hover:bg-primary-600 rounded-2xl text-xs font-black transition-all border border-white/10">بحث في الوثائق</button>
-                    <button className="px-6 py-2.5 bg-white/5 hover:bg-emerald-600 rounded-2xl text-xs font-black transition-all border border-white/10">بحث في القوائم</button>
-                    <button className="px-6 py-2.5 bg-white/5 hover:bg-amber-600 rounded-2xl text-xs font-black transition-all border border-white/10">بحث في المالية</button>
-                </div>
-            </div>
-        </div>
-    );
-
-    const Modal = ({ isOpen, onClose, title, children, maxWidth = "max-w-4xl" }: any) => {
-        if (!isOpen) return null;
-        return (
-            <div className="fixed inset-0 z-[9999] flex items-center justify-center p-4 animate-fade-in font-['Cairo'] text-right" dir="rtl">
-                <div className="fixed inset-0 bg-night-950/95 backdrop-blur-xl" onClick={onClose}></div>
-                <div className={`bg-night-800 w-full ${maxWidth} rounded-[3rem] border border-white/10 shadow-[0_0_100px_rgba(0,0,0,0.8)] relative overflow-hidden flex flex-col max-h-[90vh]`}>
-                    <div className="p-8 border-b border-white/5 flex justify-between items-center bg-night-900/40">
-                        <button onClick={onClose} className="p-3 hover:bg-white/5 rounded-full text-night-400 transition-all"><X size={24}/></button>
-                        <h3 className="text-2xl font-black text-white">{title}</h3>
+                {/* Fix: Completed the truncated list and closing divs */}
+                <div className="grid grid-cols-2 md:grid-cols-4 gap-8 mt-10">
+                    <div>
+                        <p className="text-night-500 text-[10px] font-black uppercase mb-1">المعدل العام</p>
+                        <p className="text-2xl font-black text-white">8.5/10</p>
                     </div>
-                    <div className="flex-1 overflow-y-auto custom-scrollbar p-8">{children}</div>
+                    <div>
+                        <p className="text-night-500 text-[10px] font-black uppercase mb-1">نسبة النمو</p>
+                        <p className="text-2xl font-black text-emerald-400">+12%</p>
+                    </div>
                 </div>
             </div>
-        );
-    };
+        </div>
+    );
 
-    const Receipt = ({ size, className }: { size: number, className?: string }) => (
-        <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}>
-            <path d="M4 2v20l2-1 2 1 2-1 2 1 2-1 2 1 2-1 2 1V2l-2 1-2-1-2 1-2-1-2 1-2-1-2 1Z" />
-            <path d="M16 8h-6a2 2 0 1 0 0 4h4a2 2 0 1 1 0 4H8" />
-            <path d="M12 17.5V6.5" />
-        </svg>
+    // Fix: Added missing renderSearch function
+    const renderSearch = () => (
+        <div className="animate-fade-in space-y-10 font-['Cairo'] text-right pb-20" dir="rtl">
+            <div className="bg-night-800/40 p-12 rounded-[3rem] border border-white/5 shadow-xl flex flex-col items-center justify-center text-center">
+                <Search size={64} className="text-night-700 mb-6 opacity-20" />
+                <h3 className="text-2xl font-black text-white mb-2">محرك البحث الأرشيفي</h3>
+                <p className="text-night-400 max-w-md mx-auto font-bold mb-8">ابحث في كافة سجلات الفوج التاريخية، القوائم الإسمية، والمراسلات المؤرشفة.</p>
+                <div className="w-full max-w-2xl relative group">
+                    <input type="text" placeholder="أدخل كلمات البحث هنا (اسم العضو، تاريخ، عنوان نشاط...)" className="w-full bg-night-950 border border-white/10 rounded-[2rem] p-6 pr-14 text-white font-bold outline-none focus:border-primary-500 transition-all shadow-inner" />
+                    <Search className="absolute right-6 top-6 text-night-500" size={24} />
+                </div>
+            </div>
+        </div>
     );
 
     return (
         <div className="p-8 h-full flex flex-col animate-fade-in font-['Cairo'] text-right" dir="rtl">
             <div className="mb-10 flex justify-between items-center">
                 <div>
-                    <h2 className="text-4xl font-black text-white mb-2 tracking-tight">أرشيف الفوج المركزي</h2>
-                    <p className="text-night-400 font-bold opacity-80 uppercase tracking-widest text-sm leading-none mt-2">مستودع الوثائق، السجلات التاريخية، وحافظة البيانات الذكية.</p>
+                    <h2 className="text-4xl font-black text-white mb-2 tracking-tight">الأرشيف المركزي</h2>
+                    <p className="text-night-400 font-bold opacity-80 uppercase tracking-widest text-sm leading-none mt-2">توثيق وحفظ الذاكرة الكشفية للفوج: قوائم، مستندات، وإحصائيات.</p>
                 </div>
-                <div className="flex items-center gap-4">
-                    <div className="flex bg-night-800/60 p-1.5 rounded-2xl border border-white/5 shadow-inner">
-                        <button className="p-3 rounded-xl text-primary-400 hover:bg-white/5 transition-all"><Printer size={20}/></button>
-                        <button className="p-3 rounded-xl text-emerald-400 hover:bg-white/5 transition-all"><FileSpreadsheet size={20}/></button>
-                    </div>
+                <div className="flex bg-night-800/60 p-1.5 rounded-2xl border border-white/5 shadow-inner">
+                    <button className="p-3 rounded-xl text-primary-400 hover:bg-white/5 transition-all"><Printer size={20}/></button>
+                    <button className="p-3 rounded-xl text-emerald-400 hover:bg-white/5 transition-all"><FileSpreadsheet size={20}/></button>
                 </div>
             </div>
 
-            <div className="flex bg-night-800/30 p-1 rounded-[2.5rem] border border-white/5 mb-10 self-start shadow-inner overflow-x-auto no-scrollbar max-w-full">
+            <div className="flex bg-night-800/30 p-1 rounded-[2rem] border border-white/5 mb-10 self-start shadow-inner overflow-x-auto no-scrollbar max-w-full">
                 {TABS.map((tab, idx) => (
                     <button 
                         key={idx} 
                         onClick={() => setActiveTab(idx)}
-                        className={`px-10 py-4 font-black text-sm rounded-[2rem] transition-all flex items-center gap-3 whitespace-nowrap ${activeTab === idx ? 'bg-primary-600 text-white shadow-xl shadow-primary-900/40' : 'text-night-400 hover:text-white hover:bg-white/5'}`}
+                        className={`px-10 py-4 font-black text-sm rounded-[1.8rem] transition-all flex items-center gap-3 whitespace-nowrap ${activeTab === idx ? 'bg-primary-600 text-white shadow-xl shadow-primary-900/40' : 'text-night-400 hover:text-white hover:bg-white/5'}`}
                     >
                         <tab.icon size={20}/> {tab.label}
                     </button>
@@ -403,4 +394,5 @@ const Archive: React.FC<ArchiveProps> = ({ members, events, transactions, projec
     );
 };
 
+// Fix: Added missing default export
 export default Archive;

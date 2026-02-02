@@ -1,3 +1,4 @@
+
 import React, { useState, useMemo, useEffect } from 'react';
 import { Event, Member, UnitName, Treasury, BankAccount, ActivityExpense, ActivityFundingSource, ApprovalStatus, EquipmentItem, EquipmentStatus } from '../types';
 import { 
@@ -15,6 +16,32 @@ import {
 } from 'lucide-react';
 import { UNITS_LIST } from '../constants';
 
+const ACTIVITY_TYPES = [
+    'رحلة', 'حملة تحسيسية', 'زيارة حبّية', 'مسير', 
+    'رياضة', 'زيارة ميدانية', 'استكشاف', 'ورشات'
+];
+
+const EXPENSE_TYPES = [
+    'نقل', 'تغذية', 'لوازم', 'كراء', 'خدمات', 'طباعة', 'تجهيزات', 'مصاريف أخرى'
+];
+
+// --- Fixed Modal Component Outside Render ---
+const Modal = ({ isOpen, onClose, title, children, footer, maxWidth = "max-w-4xl", className = "", overlayClassName = "bg-night-950/98 backdrop-blur-2xl" }: any) => {
+    if (!isOpen) return null;
+    return (
+        <div className={`fixed inset-0 z-[9999] flex items-center justify-center p-4 animate-fade-in font-['Cairo'] text-right ${overlayClassName}`} dir="rtl">
+            <div className={`bg-night-800 w-full ${maxWidth} rounded-[3rem] border border-white/10 shadow-[0_0_120px_rgba(0,0,0,0.9)] relative overflow-hidden flex flex-col max-h-[95vh] ${className}`}>
+                <div className="p-6 border-b border-white/5 flex justify-between items-center bg-night-900/40">
+                    <button onClick={onClose} className="p-2.5 hover:bg-white/5 rounded-full text-night-400 hover:text-white transition-all"><X size={20}/></button>
+                    <h3 className="text-xl font-black text-white">{title}</h3>
+                </div>
+                <div className="flex-1 overflow-y-auto custom-scrollbar p-6 bg-night-900/10">{children}</div>
+                {footer && <div className="p-6 border-t border-white/5 bg-night-900/50 flex justify-end gap-4">{footer}</div>}
+            </div>
+        </div>
+    );
+};
+
 interface ActivitiesProps {
   events: Event[];
   members: Member[];
@@ -31,15 +58,6 @@ interface ActivitiesProps {
   equipmentList?: EquipmentItem[];
   onUpdateEquipment?: (items: EquipmentItem[]) => void;
 }
-
-const ACTIVITY_TYPES = [
-    'رحلة', 'حملة تحسيسية', 'زيارة حبّية', 'مسير', 
-    'رياضة', 'زيارة ميدانية', 'استكشاف', 'ورشات'
-];
-
-const EXPENSE_TYPES = [
-    'نقل', 'تغذية', 'لوازم', 'كراء', 'خدمات', 'طباعة', 'تجهيزات', 'مصاريف أخرى'
-];
 
 const Activities: React.FC<ActivitiesProps> = ({ 
     events = [], 
@@ -233,22 +251,6 @@ const Activities: React.FC<ActivitiesProps> = ({
         return item;
     });
     onUpdateEquipment(updated);
-  };
-
-  const Modal = ({ isOpen, onClose, title, children, footer, maxWidth = "max-w-4xl", className = "", overlayClassName = "bg-night-950/98 backdrop-blur-2xl" }: any) => {
-    if (!isOpen) return null;
-    return (
-        <div className={`fixed inset-0 z-[9999] flex items-center justify-center p-4 animate-fade-in font-['Cairo'] text-right ${overlayClassName}`} dir="rtl">
-            <div className={`bg-night-800 w-full ${maxWidth} rounded-[3rem] border border-white/10 shadow-[0_0_120px_rgba(0,0,0,0.9)] relative overflow-hidden flex flex-col max-h-[95vh] ${className}`}>
-                <div className="p-6 border-b border-white/5 flex justify-between items-center bg-night-900/40">
-                    <button onClick={onClose} className="p-2.5 hover:bg-white/5 rounded-full text-night-400 hover:text-white transition-all"><X size={20}/></button>
-                    <h3 className="text-xl font-black text-white">{title}</h3>
-                </div>
-                <div className="flex-1 overflow-y-auto custom-scrollbar p-6 bg-night-900/10">{children}</div>
-                {footer && <div className="p-6 border-t border-white/5 bg-night-900/50 flex justify-end gap-4">{footer}</div>}
-            </div>
-        </div>
-    );
   };
 
   // --- TAB 1: نظرة عامة (Architecturally Locked) ---

@@ -1,3 +1,4 @@
+
 import React, { useState, useMemo } from 'react';
 import { Event, Member, UnitName, ActivityExpense, ActivityFundingSource, Treasury, BankAccount, EquipmentItem, EquipmentStatus, ApprovalStatus } from '../types';
 import { UNITS_LIST } from '../constants';
@@ -8,6 +9,27 @@ import {
     LayoutDashboard, TrendingUp, TrendingDown, HandCoins, Receipt, ArrowRightLeft, History, Eye, Download, Box, Shirt, Filter, ShieldCheck, Gavel, RefreshCcw, UserCheck, AlertOctagon,
     Check
 } from 'lucide-react';
+
+const EXPENSE_TYPES = [
+    'نقل', 'تغذية', 'لوازم', 'كراء', 'خدمات', 'طباعة', 'تجهيزات', 'مصاريف أخرى'
+];
+
+// --- Fixed Modal Component Outside Render ---
+const Modal = ({ isOpen, onClose, title, children, footer, maxWidth = "max-w-4xl", className = "", overlayClassName = "bg-night-950/98 backdrop-blur-2xl" }: any) => {
+    if (!isOpen) return null;
+    return (
+        <div className={`fixed inset-0 z-[9999] flex items-center justify-center p-4 animate-fade-in font-['Cairo'] text-right ${overlayClassName}`} dir="rtl">
+            <div className={`bg-night-800 w-full ${maxWidth} rounded-[3rem] border border-white/10 shadow-[0_0_120px_rgba(0,0,0,0.9)] relative overflow-hidden flex flex-col max-h-[95vh] ${className}`}>
+                <div className="p-6 border-b border-white/5 flex justify-between items-center bg-night-900/40">
+                    <button onClick={onClose} className="p-2.5 hover:bg-white/5 rounded-full text-night-400 hover:text-white transition-all"><X size={20}/></button>
+                    <h3 className="text-xl font-black text-white">{title}</h3>
+                </div>
+                <div className="flex-1 overflow-y-auto custom-scrollbar p-6 bg-night-900/10">{children}</div>
+                {footer && <div className="p-6 border-t border-white/5 bg-night-900/50 flex justify-end gap-4">{footer}</div>}
+            </div>
+        </div>
+    );
+};
 
 interface CampsProps {
     camps: Event[];
@@ -23,10 +45,6 @@ interface CampsProps {
     equipmentList?: EquipmentItem[];
     onUpdateEquipment?: (items: EquipmentItem[]) => void;
 }
-
-const EXPENSE_TYPES = [
-    'نقل', 'تغذية', 'لوازم', 'كراء', 'خدمات', 'طباعة', 'تجهيزات', 'مصاريف أخرى'
-];
 
 const Camps: React.FC<CampsProps> = ({ 
     camps, members, onAddCamp, onUpdateCamp, onAddNotification,
@@ -158,23 +176,7 @@ const Camps: React.FC<CampsProps> = ({
         if (onAddNotification) onAddNotification('تم تحديث الحالة', 'تم تسجيل حالة القطعة وتحديث السجل المالي للعهدة.', 'SUCCESS');
     };
 
-    const Modal = ({ isOpen, onClose, title, children, footer, maxWidth = "max-w-4xl", className = "", overlayClassName = "bg-night-950/98 backdrop-blur-2xl" }: any) => {
-        if (!isOpen) return null;
-        return (
-            <div className={`fixed inset-0 z-[9999] flex items-center justify-center p-4 animate-fade-in font-['Cairo'] text-right ${overlayClassName}`} dir="rtl">
-                <div className={`bg-night-800 w-full ${maxWidth} rounded-[3rem] border border-white/10 shadow-[0_0_120px_rgba(0,0,0,0.9)] relative overflow-hidden flex flex-col max-h-[95vh] ${className}`}>
-                    <div className="p-6 border-b border-white/5 flex justify-between items-center bg-night-900/40">
-                        <button onClick={onClose} className="p-2.5 hover:bg-white/5 rounded-full text-night-400 hover:text-white transition-all"><X size={20}/></button>
-                        <h3 className="text-xl font-black text-white">{title}</h3>
-                    </div>
-                    <div className="flex-1 overflow-y-auto custom-scrollbar p-6 bg-night-900/10">{children}</div>
-                    {footer && <div className="p-6 border-t border-white/5 bg-night-900/50 flex justify-end gap-4">{footer}</div>}
-                </div>
-            </div>
-        );
-    };
-
-    // --- TAB 1: نظرة عامة (محمي) ---
+    // --- TAB 1: نظرة عامة ---
     const renderOverviewTab = () => {
         if (!selectedCamp) return null;
         const maxPart = 100;
@@ -240,7 +242,7 @@ const Camps: React.FC<CampsProps> = ({
         );
     };
 
-    // --- TAB 3: المالية (محمي) ---
+    // --- TAB 3: المالية ---
     const renderFinanceTab = () => {
         if (!selectedCamp) return null;
         const scoutFeesTotal = (selectedCamp.participants?.length || 0) * (selectedCamp.fee || 0);
@@ -488,7 +490,7 @@ const Camps: React.FC<CampsProps> = ({
         );
     };
 
-    // --- TAB 4: العتاد واللباس (الجديد والمطور) ---
+    // --- TAB 4: العتاد واللباس ---
     const renderEquipmentTab = () => {
         if (!selectedCamp) return null;
         
@@ -697,7 +699,7 @@ const Camps: React.FC<CampsProps> = ({
         );
     };
 
-    // --- TAB 2: المشاركون (محمي) ---
+    // --- TAB 2: المشاركون ---
     const handleAddMemberToCamp = (member: Member) => {
         if (!selectedCamp) return;
         const isLeader = member.role.includes('قائد');
@@ -762,7 +764,7 @@ const Camps: React.FC<CampsProps> = ({
                     <div className="overflow-x-auto">
                       <table className="w-full text-right border-collapse text-sm font-bold">
                           <thead className="bg-night-950 text-night-300 text-[10px] font-black uppercase tracking-[0.2em] border-b border-white/5">
-                              <tr><th className="p-6">الإسم الكامل</th><th className="p-6">رقم العضوية</th><th className="p-6">الوحدة</th><th className="p-6 text-center">اجراءات</th></tr>
+                              <tr><th className="p-6">الإسم الكامل</th><th className="p-6">رقم العضوية</th><th className="p-6">الوحدة</th><th className="p-6">تاريخ الميلاد</th><th className="p-6 text-center">اجراءات</th></tr>
                           </thead>
                           <tbody className="divide-y divide-white/5 text-sm font-bold">
                               {leaders.map(m => (
@@ -770,6 +772,7 @@ const Camps: React.FC<CampsProps> = ({
                                       <td className="p-5 flex items-center gap-4"><img src={m.image} className="w-12 h-12 rounded-2xl border-2 border-night-900 shadow-md" /><p className="font-black text-white">{m.fullName}</p></td>
                                       <td className="p-5 text-night-400 font-mono tracking-widest">{m.membershipNumber}</td>
                                       <td className="p-5 text-night-300">{m.unit}</td>
+                                      <td className="p-5 text-night-400 font-mono">{m.birthDate}</td>
                                       <td className="p-5 text-center"><button onClick={() => handleRemoveMemberFromCamp(m.id, true)} className="p-3 bg-rose-600/10 hover:bg-rose-600 text-rose-500 hover:text-white rounded-2xl transition-all shadow-xl"><UserX size={20}/></button></td>
                                   </tr>
                               ))}
