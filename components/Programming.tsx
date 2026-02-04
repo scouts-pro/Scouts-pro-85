@@ -3,14 +3,14 @@ import React, { useState, useMemo } from 'react';
 import { 
     ProgramActivity, ProgramStatus 
 } from '../types';
-// Fix: Added missing icons Star, BadgeDollarSign, and Printer to the import list
+// Fix: Added missing Tag icon to the lucide-react import
 import { 
     LayoutList, LayoutDashboard, Calendar, Search, Filter, Plus, 
     CheckCircle2, AlertTriangle, Clock, X, Save, TrendingUp, 
     FileText, Download, Edit, Trash2, Archive, Users, MapPin, 
     ArrowRightLeft, FileSpreadsheet, Eye, ChevronLeft, ChevronRight,
     PieChart as PieIcon, BarChart3, Info, Briefcase, Zap, Rocket, 
-    History, MoreHorizontal, Target, Star, BadgeDollarSign, Printer
+    History, MoreHorizontal, Target, Star, BadgeDollarSign, Printer, ChevronDown, Tag
 } from 'lucide-react';
 import { 
     BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, 
@@ -23,6 +23,68 @@ interface ProgrammingProps {
 
 const COLORS = ['#3b82f6', '#10b981', '#f59e0b', '#ef4444'];
 const ACTIVITY_TYPES = ['رحلة', 'مخيم', 'ورشة', 'نشاط داخلي', 'مسابقة', 'أخرى'];
+
+// --- Professional Custom Dropdown Component ---
+const CustomDropdown = ({ options, value, onChange, placeholder, icon: Icon, className }: any) => {
+    const [isOpen, setIsOpen] = useState(false);
+    const selected = options.find((o: any) => (typeof o === 'object' ? o.value === value : o === value));
+    const label = selected ? (typeof selected === 'object' ? selected.label : selected) : placeholder;
+
+    return (
+        <div className={`relative ${className} font-['Cairo']`}>
+            <div 
+                onClick={() => setIsOpen(!isOpen)}
+                className="w-full bg-night-900 border border-white/10 rounded-2xl p-4 text-white flex items-center justify-between cursor-pointer hover:border-primary-500 transition-all shadow-inner"
+            >
+                <div className="flex items-center gap-3">
+                    {/* Fix: Corrected component rendering syntax for passed icon prop */}
+                    {Icon && <Icon size={18} className="text-primary-400" />}
+                    <span className={`font-bold ${!value ? 'text-night-500' : 'text-white'}`}>{label || placeholder}</span>
+                </div>
+                <ChevronDown size={16} className={`text-night-500 transition-transform ${isOpen ? 'rotate-180' : ''}`} />
+            </div>
+            {isOpen && (
+                <>
+                    <div className="fixed inset-0 z-[1000]" onClick={() => setIsOpen(false)} />
+                    <div className="absolute top-full left-0 right-0 mt-2 bg-night-800 border border-white/10 rounded-2xl shadow-2xl z-[1001] max-h-60 overflow-y-auto custom-scrollbar animate-fade-in">
+                        {options.map((opt: any, idx: number) => {
+                            const val = typeof opt === 'object' ? opt.value : opt;
+                            const lbl = typeof opt === 'object' ? opt.label : opt;
+                            return (
+                                <div 
+                                    key={idx} 
+                                    onClick={() => { onChange(val); setIsOpen(false); }}
+                                    className={`p-4 hover:bg-white/5 cursor-pointer text-sm text-white border-b border-white/5 last:border-0 flex items-center justify-between ${val === value ? 'bg-primary-600/10 text-primary-400 font-black' : ''}`}
+                                >
+                                    {lbl}
+                                    {val === value && <CheckCircle2 size={14} />}
+                                </div>
+                            );
+                        })}
+                    </div>
+                </>
+            )}
+        </div>
+    );
+};
+
+// Fixed: Moved Modal definition outside of Programming component to prevent focus loss during state updates (typing)
+const Modal = ({ isOpen, onClose, title, children, footer, maxWidth = "max-w-4xl" }: any) => {
+    if (!isOpen) return null;
+    return (
+        <div className="fixed inset-0 z-[9999] flex items-center justify-center p-4 animate-fade-in font-['Cairo'] text-right" dir="rtl">
+            <div className="fixed inset-0 bg-night-950/90 backdrop-blur-md" onClick={onClose}></div>
+            <div className={`bg-night-800 w-full ${maxWidth} rounded-[2.5rem] border border-white/10 shadow-2xl relative overflow-hidden flex flex-col max-h-[90vh]`}>
+                <div className="p-6 border-b border-white/5 flex justify-between items-center bg-night-900/40">
+                    <button onClick={onClose} className="p-2.5 hover:bg-white/5 rounded-full text-night-400 transition-all"><X size={20}/></button>
+                    <h3 className="text-xl font-black text-white">{title}</h3>
+                </div>
+                <div className="flex-1 overflow-y-auto custom-scrollbar p-8">{children}</div>
+                {footer && <div className="p-6 border-t border-white/5 bg-night-900/50 flex justify-end gap-4">{footer}</div>}
+            </div>
+        </div>
+    );
+};
 
 const Programming: React.FC<ProgrammingProps> = ({ onAddNotification }) => {
     const [activeTab, setActiveTab] = useState(0);
@@ -82,24 +144,6 @@ const Programming: React.FC<ProgrammingProps> = ({ onAddNotification }) => {
             return matchesSearch && matchesStatus;
         });
     }, [programs, searchQuery, statusFilter]);
-
-    // --- Helpers ---
-    const Modal = ({ isOpen, onClose, title, children, footer, maxWidth = "max-w-4xl" }: any) => {
-        if (!isOpen) return null;
-        return (
-            <div className="fixed inset-0 z-[9999] flex items-center justify-center p-4 animate-fade-in font-['Cairo'] text-right" dir="rtl">
-                <div className="fixed inset-0 bg-night-950/90 backdrop-blur-md" onClick={onClose}></div>
-                <div className={`bg-night-800 w-full ${maxWidth} rounded-[2.5rem] border border-white/10 shadow-2xl relative overflow-hidden flex flex-col max-h-[90vh]`}>
-                    <div className="p-6 border-b border-white/5 flex justify-between items-center bg-night-900/40">
-                        <button onClick={onClose} className="p-2.5 hover:bg-white/5 rounded-full text-night-400 transition-all"><X size={20}/></button>
-                        <h3 className="text-xl font-black text-white">{title}</h3>
-                    </div>
-                    <div className="flex-1 overflow-y-auto custom-scrollbar p-8">{children}</div>
-                    {footer && <div className="p-6 border-t border-white/5 bg-night-900/50 flex justify-end gap-4">{footer}</div>}
-                </div>
-            </div>
-        );
-    };
 
     const handleSaveProgram = () => {
         if (!newProgram.name || !newProgram.responsible) return;
@@ -188,10 +232,13 @@ const Programming: React.FC<ProgrammingProps> = ({ onAddNotification }) => {
                         <input type="text" placeholder="بحث في الأنشطة..." className="bg-night-900 border border-white/5 rounded-xl pr-10 pl-4 py-2.5 text-sm text-white outline-none w-64 focus:border-primary-500 transition-all" value={searchQuery} onChange={e => setSearchQuery(e.target.value)} />
                         <Search className="absolute right-3 top-3 text-night-400" size={18} />
                     </div>
-                    <select className="bg-night-900 border border-white/5 rounded-xl px-4 py-2 text-xs text-white outline-none" value={statusFilter} onChange={e => setStatusFilter(e.target.value)}>
-                        <option value="ALL">كل الحالات</option>
-                        <option>مخطط</option><option>جاري</option><option>مكتمل</option><option>ملغى</option>
-                    </select>
+                    <CustomDropdown 
+                        options={[{value:'ALL', label:'كل الحالات'}, {value:'مخطط', label:'مخطط'}, {value:'جاري', label:'جاري'}, {value:'مكتمل', label:'مكتمل'}, {value:'ملغى', label:'ملغى'}]}
+                        value={statusFilter}
+                        onChange={setStatusFilter}
+                        placeholder="تصفية الحالات..."
+                        className="w-48"
+                    />
                 </div>
                 <button onClick={() => setShowAddModal(true)} className="px-8 py-3 bg-primary-600 hover:bg-primary-500 text-white rounded-2xl font-black text-sm shadow-xl flex items-center gap-2 transition-all active:scale-95"><Plus size={20}/> إضافة نشاط جديد</button>
             </div>
@@ -438,7 +485,7 @@ const Programming: React.FC<ProgrammingProps> = ({ onAddNotification }) => {
                 ].map((report, i) => (
                     <div key={i} className="bg-night-800 border border-white/5 p-10 rounded-[3rem] shadow-xl hover:-translate-y-2 transition-all group cursor-pointer relative overflow-hidden">
                         <div className="absolute top-0 right-0 w-1.5 h-full bg-primary-600 group-hover:w-3 transition-all"></div>
-                        <div className="p-4 bg-white/5 text-primary-400 w-fit rounded-2xl mb-6 shadow-inner group-hover:bg-primary-600 group-hover:text-white transition-all"><report.icon size={32}/></div>
+                        <div className={`p-4 bg-white/5 text-primary-400 w-fit rounded-2xl mb-6 shadow-inner group-hover:bg-primary-600 group-hover:text-white transition-all`}><report.icon size={32}/></div>
                         <h5 className="text-xl font-black text-white mb-3">{report.title}</h5>
                         <p className="text-night-400 text-sm font-bold leading-relaxed mb-10">{report.desc}</p>
                         <button className="flex items-center gap-2 text-primary-400 font-black text-[10px] uppercase tracking-widest group-hover:translate-x-[-8px] transition-transform">معاينة وتنزيل <Download size={14}/></button>
@@ -455,9 +502,11 @@ const Programming: React.FC<ProgrammingProps> = ({ onAddNotification }) => {
                     <h2 className="text-4xl font-black text-white mb-2 tracking-tight">البرمجة والتخطيط المركزي</h2>
                     <p className="text-night-400 font-bold opacity-80 uppercase tracking-widest text-sm leading-none mt-2">إدارة الموسم الكشفي: تخطيط، تنفيذ، وتقييم شامل.</p>
                 </div>
-                <div className="flex bg-night-800/60 p-1.5 rounded-2xl border border-white/5 shadow-inner">
-                    <button className="p-3 rounded-xl text-primary-400 hover:bg-white/5 transition-all"><Printer size={20}/></button>
-                    <button className="p-3 rounded-xl text-emerald-400 hover:bg-white/5 transition-all"><FileSpreadsheet size={20}/></button>
+                <div className="flex items-center gap-4">
+                    <div className="flex bg-night-800/60 p-1.5 rounded-2xl border border-white/5 shadow-inner">
+                        <button className="p-3 rounded-xl text-primary-400 hover:bg-white/5 transition-all"><Printer size={20}/></button>
+                        <button className="p-3 rounded-xl text-emerald-400 hover:bg-white/5 transition-all"><FileSpreadsheet size={20}/></button>
+                    </div>
                 </div>
             </div>
 
@@ -487,7 +536,9 @@ const Programming: React.FC<ProgrammingProps> = ({ onAddNotification }) => {
                 {activeTab === 4 && renderReports()}
             </div>
 
-            <Modal isOpen={showAddModal} onClose={() => setShowAddModal(false)} title="إضافة نشاط برمجي جديد">
+            <Modal isOpen={showAddModal} onClose={() => setShowAddModal(false)} title="إضافة نشاط برمجي جديد" footer={
+                <div className="flex gap-4"><button onClick={() => setShowAddModal(false)} className="px-8 py-3 bg-white/5 hover:bg-white/10 text-white rounded-2xl font-black transition-all">إلغاء</button><button onClick={handleSaveProgram} className="px-12 py-3 bg-primary-600 hover:bg-primary-500 text-white rounded-2xl font-black shadow-2xl transition-all flex items-center gap-2 transform hover:scale-105"><Save size={20}/> تأكيد التسجيل</button></div>
+            }>
                 <div className="space-y-6">
                     <div className="grid grid-cols-2 gap-6">
                         <div className="space-y-2">
@@ -496,9 +547,13 @@ const Programming: React.FC<ProgrammingProps> = ({ onAddNotification }) => {
                         </div>
                         <div className="space-y-2">
                             <label className="text-xs font-black text-night-400">نوع النشاط</label>
-                            <select className="w-full bg-night-900 border border-white/10 rounded-2xl p-4 text-white font-bold" value={newProgram.type} onChange={e => setNewProgram({...newProgram, type: e.target.value})}>
-                                {ACTIVITY_TYPES.map(t => <option key={t} value={t}>{t}</option>)}
-                            </select>
+                            <CustomDropdown 
+                                options={ACTIVITY_TYPES}
+                                value={newProgram.type}
+                                onChange={(v: string) => setNewProgram({...newProgram, type: v})}
+                                placeholder="اختر النوع..."
+                                icon={Tag}
+                            />
                         </div>
                     </div>
                     <div className="grid grid-cols-2 gap-6">
@@ -525,7 +580,6 @@ const Programming: React.FC<ProgrammingProps> = ({ onAddNotification }) => {
                         <label className="text-xs font-black text-night-400">وصف النشاط</label>
                         <textarea className="w-full h-32 bg-night-900 border border-white/10 rounded-2xl p-4 text-white resize-none" value={newProgram.description} onChange={e => setNewProgram({...newProgram, description: e.target.value})} />
                     </div>
-                    <button onClick={handleSaveProgram} className="w-full py-5 bg-primary-600 hover:bg-primary-500 text-white rounded-2xl font-black shadow-xl transition-all">تأكيد وحفظ في البرنامج</button>
                 </div>
             </Modal>
         </div>

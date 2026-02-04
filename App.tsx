@@ -24,35 +24,50 @@ import { Bell, CheckCircle2, AlertTriangle, Info, X, Menu, PanelRightOpen } from
 const App: React.FC = () => {
   const [isLoggedIn, setIsLoggedIn] = useState(false);
   const [currentSection, setCurrentSection] = useState<Section>('DASHBOARD');
-  
-  // القائمة مطوية افتراضياً
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
-  
   const [notifications, setNotifications] = useState<Notification[]>([]);
 
-  // Mock Data States
-  const [members, setMembers] = useState<Member[]>([
-      {
-        id: '1',
+  // --- توليد البيانات التجريبية ---
+  
+  // 1. الطلائع (طلعتين لكل وحدة)
+  const generatedPatrols: Patrol[] = [];
+  Object.values(UnitName).forEach((unit, uIdx) => {
+    generatedPatrols.push(
+      { id: `p-${uIdx}-1`, name: `طليعة الأسد - ${unit}`, slogan: 'القوة والاتحاد', logo: '', unit: unit, leaderId: `leader-${uIdx}` },
+      { id: `p-${uIdx}-2`, name: `طليعة الصقر - ${unit}`, slogan: 'التحليق عالياً', logo: '', unit: unit, leaderId: `leader-${uIdx}` }
+    );
+  });
+
+  // 2. الأعضاء
+  const generatedMembers: Member[] = [];
+  
+  // إضافة الكشافين (6 لكل طليعة)
+  generatedPatrols.forEach((patrol) => {
+    for (let i = 1; i <= 6; i++) {
+      generatedMembers.push({
+        id: `m-${patrol.id}-${i}`,
         scoutYear: '2024-2025',
-        fullName: 'أحمد بن محمد',
+        fullName: `كشاف ${i} - ${patrol.name}`,
         role: MemberRole.SCOUT,
-        unit: UnitName.KASHAF,
-        patrol: 'النسور',
-        image: 'https://i.pravatar.cc/150?u=1',
-        gender: 'ذكر',
-        birthDate: '2010-05-15',
+        unit: patrol.unit,
+        patrol: patrol.name,
+        image: `https://i.pravatar.cc/150?u=m-${patrol.id}-${i}`,
+        gender: i % 2 === 0 ? 'ذكر' : 'أنثى',
+        birthDate: '2012-01-01',
         birthPlace: 'الجزائر',
-        age: 14,
-        address: 'الجزائر',
-        bloodType: 'O+',
-        membershipNumber: '2024001',
-        insuranceNumber: 'INS001',
+        age: 12,
+        address: 'الجزائر العاصمة',
+        // Fix: Added missing required properties 'nationality' and 'hasSecondNationality'
+        nationality: 'الجزائرية',
+        hasSecondNationality: false,
+        bloodType: 'A+',
+        membershipNumber: `K-${patrol.id}-${i}`,
+        insuranceNumber: `INS-${patrol.id}-${i}`,
         isActive: true,
         subscriptionPaid: true,
         insurancePaid: true,
-        guardianName: 'محمد بن أحمد',
-        guardianPhone: '0555123456',
+        guardianName: 'ولي الأمر',
+        guardianPhone: '0555000000',
         guardianRelation: 'أب',
         siblingsCount: 2,
         birthOrder: 1,
@@ -63,68 +78,124 @@ const App: React.FC = () => {
         specialSocialCases: 'لا يوجد',
         socialNotes: '',
         educationLevel: 'متوسط',
-        institution: 'متوسطة النور',
+        institution: 'مدرسة النجاح',
         studyStatus: 'متمدرس',
-        scoutMission: 'عريف طليعة',
-        scoutJob: 'قيادة الطليعة',
+        scoutMission: 'عضو',
+        scoutJob: 'كشاف',
         rank: 'مبتدئ',
-        hobbies: 'السباحة، المطالعة',
+        hobbies: 'الكشفية',
         activityIds: [],
-        points: 120,
+        points: 100,
         earnedBadges: []
-      }
-  ]);
-  
-  const [patrols, setPatrols] = useState<Patrol[]>([]);
+      });
+    }
+  });
+
+  // إضافة 6 قادة
+  for (let i = 1; i <= 6; i++) {
+    generatedMembers.push({
+      ...generatedMembers[0],
+      id: `leader-${i}`,
+      fullName: `القائد المسؤول ${i}`,
+      role: MemberRole.LEADER,
+      membershipNumber: `LDR-00${i}`,
+      unit: i <= 3 ? UnitName.KASHAF : UnitName.ASHBAL,
+      scoutMission: 'قائد وحدة'
+    });
+  }
+
+  // إضافة 6 منخرطين
+  for (let i = 1; i <= 6; i++) {
+    generatedMembers.push({
+      ...generatedMembers[0],
+      id: `affiliate-${i}`,
+      fullName: `المنخرط ${i}`,
+      role: MemberRole.AFFILIATE,
+      membershipNumber: `AFF-00${i}`,
+      scoutMission: 'منخرط'
+    });
+  }
+
+  // إضافة 5 أعضاء شرفيين
+  for (let i = 1; i <= 5; i++) {
+    generatedMembers.push({
+      ...generatedMembers[0],
+      id: `honorary-${i}`,
+      fullName: `عضو شرفي ${i}`,
+      role: MemberRole.HONORARY,
+      membershipNumber: `HON-00${i}`,
+      scoutMission: 'داعم'
+    });
+  }
+
+  // إضافة 3 عمداء
+  for (let i = 1; i <= 3; i++) {
+    generatedMembers.push({
+      ...generatedMembers[0],
+      id: `dean-${i}`,
+      fullName: `العميد ${i}`,
+      role: MemberRole.DEAN,
+      membershipNumber: `DEN-00${i}`,
+      scoutMission: 'مستشار'
+    });
+  }
+
+  const [members, setMembers] = useState<Member[]>(generatedMembers);
+  const [patrols, setPatrols] = useState<Patrol[]>(generatedPatrols);
   const [transactions, setTransactions] = useState<Transaction[]>([]);
   const [attendance, setAttendance] = useState<AttendanceSession[]>([]);
   const [sanctions, setSanctions] = useState<Sanction[]>([]);
-  const [treasuries, setTreasuries] = useState<Treasury[]>([]);
-  const [bankAccounts, setBankAccounts] = useState<BankAccount[]>([]);
-  const [events, setEvents] = useState<Event[]>([
-      {
-        id: 'act1',
-        title: 'نشاط الجمعة التربوي',
-        type: 'ACTIVITY',
-        date: '2024-11-01',
-        location: 'مقر الفوج',
-        coverImage: 'https://images.unsplash.com/photo-1517486808906-6ca8b3f04846?q=80&w=1000&auto=format&fit=crop',
-        targetUnits: [UnitName.ASHBAL, UnitName.KASHAF],
-        participants: ['1'],
-        leaderIds: [],
-        goals: 'غرس القيم الكشفية والتدريب على العقد.',
-        cost: 2000,
-        fee: 50,
-        leaderFee: 100,
-        manager: 'القائد أحمد',
-        isClosed: false,
-        activityExpenses: [],
-        additionalFunding: [],
-        surplusTransfers: []
-      },
-      {
-        id: 'cmp1',
-        title: 'مخيم الشتاء التدريبي',
-        type: 'CAMP',
-        date: '2024-12-15',
-        location: 'غابة باينام',
-        coverImage: 'https://images.unsplash.com/photo-1504280390367-361c6d9f38f4?q=80&w=1000&auto=format&fit=crop',
-        targetUnits: [UnitName.KASHAF, UnitName.MOTAQADEM],
-        participants: ['1'],
-        leaderIds: [],
-        goals: 'حياة الخلاء والاعتماد على النفس.',
-        cost: 15000,
-        fee: 500,
-        leaderFee: 500,
-        manager: 'القائد محمد',
-        isClosed: false,
-        activityExpenses: [],
-        additionalFunding: [],
-        surplusTransfers: []
-      }
+  
+  // 3. المالية (خزينة وحساب بنكي)
+  const [treasuries, setTreasuries] = useState<Treasury[]>([
+    { id: 'tr-main', name: 'خزينة الفوج الرئيسية', isMain: true, balance: 25000, manager: 'القائد أمين المال' }
   ]);
+  const [bankAccounts, setBankAccounts] = useState<BankAccount[]>([
+    { id: 'bnk-1', bankName: 'بنك التنمية المحلية BDL', accountNumber: '00123456789012345678', currency: 'DZD', manager: 'قائد الفوج', balance: 150000 }
+  ]);
+
+  // 4. الفعاليات (3 أنشطة و 2 مخيمات)
+  const [events, setEvents] = useState<Event[]>([
+    {
+      id: 'act-1', title: 'نشاط الجمعة التربوي الموحد', type: 'ACTIVITY', date: '2024-11-22', location: 'مقر الفوج',
+      coverImage: 'https://images.unsplash.com/photo-1517486808906-6ca8b3f04846',
+      targetUnits: [UnitName.ASHBAL, UnitName.KASHAF], participants: ['m-p-0-1-1'], leaderIds: ['leader-1'],
+      goals: 'التربية الكشفية', cost: 5000, fee: 100, activityExpenses: [], additionalFunding: [], surplusTransfers: []
+    },
+    {
+      id: 'act-2', title: 'دورة في الإسعافات الأولية', type: 'ACTIVITY', date: '2024-11-29', location: 'دار الشباب',
+      coverImage: 'https://images.unsplash.com/photo-1517486808906-6ca8b3f04846',
+      targetUnits: [UnitName.MOTAQADEM, UnitName.JAWALA], participants: [], leaderIds: ['leader-2'],
+      goals: 'تعلم الإسعاف', cost: 3000, fee: 200, activityExpenses: [], additionalFunding: [], surplusTransfers: []
+    },
+    {
+      id: 'act-3', title: 'زيارة لدار الأيتام', type: 'ACTIVITY', date: '2024-12-05', location: 'وسط المدينة',
+      coverImage: 'https://images.unsplash.com/photo-1517486808906-6ca8b3f04846',
+      targetUnits: [UnitName.ASHBAL, UnitName.KASHAF], participants: [], leaderIds: ['leader-3'],
+      goals: 'العمل التطوعي', cost: 2000, fee: 0, activityExpenses: [], additionalFunding: [], surplusTransfers: []
+    },
+    {
+      id: 'cmp-1', title: 'مخيم الشتاء "أشبال التحدي"', type: 'CAMP', date: '2024-12-20', location: 'غابة تيكجدة',
+      coverImage: 'https://images.unsplash.com/photo-1504280390367-361c6d9f38f4',
+      targetUnits: [UnitName.ASHBAL], participants: [], leaderIds: ['leader-1', 'leader-2'],
+      goals: 'حياة الخلاء', cost: 45000, fee: 2500, leaderFee: 1500, activityExpenses: [], additionalFunding: [], surplusTransfers: []
+    },
+    {
+      id: 'cmp-2', title: 'المخيم التدريبي للقادة', type: 'CAMP', date: '2025-01-10', location: 'مركز التخييم بسيدي فرج',
+      coverImage: 'https://images.unsplash.com/photo-1504280390367-361c6d9f38f4',
+      targetUnits: [], participants: [], leaderIds: ['leader-1', 'leader-2', 'leader-3', 'leader-4'],
+      goals: 'تطوير المهارات القيادية', cost: 60000, fee: 0, leaderFee: 2000, activityExpenses: [], additionalFunding: [], surplusTransfers: []
+    }
+  ]);
+
   const [projects, setProjects] = useState<Project[]>([]);
-  const [equipment, setEquipment] = useState<EquipmentItem[]>([]);
+
+  // 5. العتاد (لباس وعتاد)
+  const [equipment, setEquipment] = useState<EquipmentItem[]>([
+    { id: 'eq-1', uniqueId: 'UNI-2024-01', name: 'زي كشفي رسمي - كامل', category: 'لباس', status: 'متاح', condition: 'جديد', location: 'المخزن الرئيسي', size: 'L' },
+    { id: 'eq-2', uniqueId: 'TEN-2024-01', name: 'خيمة عملاقة 8 أشخاص', category: 'عتاد', status: 'متاح', condition: 'ممتازة', location: 'المخزن الرئيسي', description: 'خيمة مبيت جماعي' }
+  ]);
+
   const [badges, setBadges] = useState<Badge[]>([]);
   const [pointsHistory, setPointsHistory] = useState<PointRecord[]>([]);
   const [rankLevels, setRankLevels] = useState<RankLevel[]>([]);
@@ -145,7 +216,7 @@ const App: React.FC = () => {
   const renderContent = () => {
       switch(currentSection) {
           case 'DASHBOARD': return <Dashboard members={members} events={events} onNavigate={setCurrentSection} />;
-          case 'MEMBERS': return <Members members={members} onAddMember={(m) => setMembers([...members, m])} onUpdateMember={(m) => setMembers(members.map(mem => mem.id === m.id ? m : mem))} onDeleteMember={(id) => setMembers(members.filter(m => m.id !== id))} equipmentList={equipment} />;
+          case 'MEMBERS': return <Members members={members} onAddMember={(m) => setMembers([...members, m])} onUpdateMember={(m) => setMembers(members.map(mem => mem.id === m.id ? m : mem))} onDeleteMember={(id) => setMembers(members.filter(m => m.id !== id))} />;
           case 'UNITS': return <Units members={members} patrols={patrols} onAddPatrol={(p) => setPatrols([...patrols, p])} onUpdatePatrol={(p) => setPatrols(patrols.map(pat => pat.id === p.id ? p : pat))} onUpdateMember={(m) => setMembers(members.map(mem => mem.id === m.id ? m : mem))} />;
           case 'FINANCE': return <Finance transactions={transactions} insuranceTotal={0} onAddTransaction={(t) => setTransactions([...transactions, t])} events={events} projects={projects} />;
           case 'INSURANCE': return <Insurance members={members} transactions={transactions} onTransferToFinance={(data) => {
@@ -207,7 +278,6 @@ const App: React.FC = () => {
 
   return (
     <div className="flex h-screen bg-night-900 text-white font-sans overflow-hidden" dir="rtl">
-        {/* القائمة الجانبية */}
         <Sidebar 
             currentSection={currentSection} 
             onNavigate={setCurrentSection} 
@@ -215,7 +285,6 @@ const App: React.FC = () => {
             setIsOpen={setIsSidebarOpen} 
         />
         
-        {/* زر الموبايل */}
         <button 
             className="fixed top-4 left-4 z-40 p-3 bg-night-800 text-white rounded-xl shadow-lg border border-white/10 md:hidden"
             onClick={() => setIsSidebarOpen(true)}
@@ -223,14 +292,12 @@ const App: React.FC = () => {
             <Menu size={24} />
         </button>
 
-        {/* محتوى التطبيق الرئيسي - تم إلغاء التحويل (Transform) والشفافية ليبقى ثابتاً */}
         <main className={`
             flex-1 flex flex-col relative overflow-hidden transition-all duration-500 ease-[cubic-bezier(0.4,0,0.2,1)]
             md:mr-20 
         `}>
             <div className="flex-1 flex flex-col h-full">
                 
-                {/* Notifications Overlay */}
                 <div className="absolute top-20 left-4 z-50 flex flex-col gap-2 w-80 pointer-events-none">
                     {notifications.map(n => (
                         <div key={n.id} className={`pointer-events-auto p-4 rounded-xl shadow-2xl border flex items-start gap-3 animate-slide-in ${
@@ -253,7 +320,6 @@ const App: React.FC = () => {
                     ))}
                 </div>
 
-                {/* Scrollable Content Area */}
                 <div className="flex-1 overflow-y-auto custom-scrollbar scroll-smooth">
                     {renderContent()}
                 </div>

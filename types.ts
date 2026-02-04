@@ -4,6 +4,7 @@
 export enum MemberRole {
   SCOUT = 'كشاف',
   LEADER = 'قائد',
+  DEAN = 'عميد',
   AFFILIATE = 'منخرط', 
   HONORARY = 'عضو شرفي'
 }
@@ -21,6 +22,15 @@ export enum UnitName {
   JAWALAT = 'وحدة الجوالات'
 }
 
+export interface MemberActivity {
+  id: string;
+  type: 'دورة' | 'تكوين' | 'مشاركة وطنية' | 'مشاركة دولية' | 'أخرى';
+  name: string;
+  date: string;
+  location: string;
+  notes?: string;
+}
+
 export interface Member {
   id: string;
   scoutYear: string;
@@ -34,6 +44,11 @@ export interface Member {
   age: number;
   phone?: string;
   email?: string;
+  nationalId?: string;
+  passportNumber?: string;
+  nationality: string;
+  hasSecondNationality: boolean;
+  secondNationality?: string;
   address: string;
   addressDetail?: string;
   bloodType: string;
@@ -55,9 +70,12 @@ export interface Member {
   birthOrder: number;
   birthOrderLabel?: 'الأول' | 'الأوسط' | 'الأخير' | 'وحيد';
   familyStatus?: string;
-  studyStatus: string;
+  studyStatus: 'يزاول' | 'متوقف' | 'متخرج' | string;
   educationLevel: string;
   institution: string;
+  classSection?: string;
+  specialty?: string;
+  educationEndDate?: string;
   unit: UnitName | string;
   patrol: string;
   scoutMission: string;
@@ -65,6 +83,7 @@ export interface Member {
   earnedBadges: string[];
   trainingHistory?: string;
   participationHistory?: string;
+  externalActivities?: MemberActivity[];
   otherActivities?: string;
   rank: string;
   financialStatus?: string;
@@ -81,10 +100,8 @@ export interface Member {
   activityIds?: string[];
   scoutJob?: string;
   disabilityType?: string;
-  classSection?: string;
   graduationYear?: string;
   stopYear?: string;
-  specialty?: string;
   vaccines?: string;
   emergencyContact?: string;
   healthNotes?: string;
@@ -346,7 +363,7 @@ export interface Announcement {
 
 export interface Meeting {
   id: string;
-  type: 'اجتماعات قيادية' | 'اجتماعات وحدات أو طلائع' | 'اجتماعات استثنائية أو خاصة';
+  type: 'اج اجتماعات قيادية' | 'اجتماعات وحدات أو طلائع' | 'اجتماعات استثنائية أو خاصة';
   date: string;
   time: string;
   location: string;

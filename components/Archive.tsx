@@ -8,13 +8,56 @@ import {
     Filter, Download, Eye, X, Calendar, MapPin, CheckCircle2, History, 
     TrendingUp, ShieldCheck, Printer, Briefcase, DollarSign, ArrowUpRight, 
     FileSpreadsheet, PieChart as PieIcon, Activity, Star, Rocket, Target, Zap,
-    // Fix: Added missing Receipt import
-    Receipt
+    Receipt, ChevronDown
 } from 'lucide-react';
 import { 
     BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, 
     PieChart, Pie, Cell, Legend, LineChart, Line, AreaChart, Area 
 } from 'recharts';
+
+// --- Professional Custom Dropdown Component ---
+const CustomDropdown = ({ options, value, onChange, placeholder, icon: Icon, className }: any) => {
+    const [isOpen, setIsOpen] = useState(false);
+    const selected = options.find((o: any) => (typeof o === 'object' ? o.value === value : o === value));
+    const label = selected ? (typeof selected === 'object' ? selected.label : selected) : placeholder;
+
+    return (
+        <div className={`relative ${className} font-['Cairo']`}>
+            <div 
+                onClick={() => setIsOpen(!isOpen)}
+                className="w-full bg-night-950 border border-white/10 rounded-2xl px-6 py-4 text-white flex items-center justify-between cursor-pointer hover:border-primary-500 transition-all shadow-inner"
+            >
+                <div className="flex items-center gap-3">
+                    {/* Fix: Corrected syntax to render the Icon component and added a null check */}
+                    {Icon && <Icon size={18} className="text-primary-400" />}
+                    <span className={`font-bold ${!value ? 'text-night-500' : 'text-white'}`}>{label || placeholder}</span>
+                </div>
+                <ChevronDown size={16} className={`text-night-500 transition-transform ${isOpen ? 'rotate-180' : ''}`} />
+            </div>
+            {isOpen && (
+                <>
+                    <div className="fixed inset-0 z-[1000]" onClick={() => setIsOpen(false)} />
+                    <div className="absolute top-full left-0 right-0 mt-2 bg-night-800 border border-white/10 rounded-2xl shadow-2xl z-[1001] max-h-60 overflow-y-auto custom-scrollbar animate-fade-in">
+                        {options.map((opt: any, idx: number) => {
+                            const val = typeof opt === 'object' ? opt.value : opt;
+                            const lbl = typeof opt === 'object' ? opt.label : opt;
+                            return (
+                                <div 
+                                    key={idx} 
+                                    onClick={() => { onChange(val); setIsOpen(false); }}
+                                    className={`p-4 hover:bg-white/5 cursor-pointer text-sm text-white border-b border-white/5 last:border-0 flex items-center justify-between ${val === value ? 'bg-primary-600/10 text-primary-400 font-black' : ''}`}
+                                >
+                                    {lbl}
+                                    {val === value && <CheckCircle2 size={14} />}
+                                </div>
+                            );
+                        })}
+                    </div>
+                </>
+            )}
+        </div>
+    );
+};
 
 // --- Fixed Modal Component Outside Render ---
 const Modal = ({ isOpen, onClose, title, children, maxWidth = "max-w-4xl" }: any) => {
@@ -161,10 +204,13 @@ const Archive: React.FC<ArchiveProps> = ({ members, events, transactions, projec
                     <input type="text" placeholder="بحث باسم العضو أو رقم التعريف..." className="w-full bg-night-950 border border-white/10 rounded-2xl py-4 pr-12 pl-4 text-white text-sm outline-none focus:border-primary-500 transition-all font-bold" value={searchQuery} onChange={e => setSearchQuery(e.target.value)} />
                     <Search className="absolute right-4 top-4 text-night-500 group-focus-within:text-primary-400" size={20} />
                 </div>
-                <select className="bg-night-950 border border-white/10 rounded-2xl px-6 py-4 text-white text-sm font-bold outline-none w-full md:w-64" value={filterUnit} onChange={e => setFilterUnit(e.target.value)}>
-                    <option value="ALL">جميع الوحدات</option>
-                    {Object.values(UnitName).map(u => <option key={u} value={u}>{u}</option>)}
-                </select>
+                <CustomDropdown 
+                    options={[{value: 'ALL', label: 'جميع الوحدات'}, ...Object.values(UnitName).map(u => ({value: u, label: u}))]}
+                    value={filterUnit}
+                    onChange={setFilterUnit}
+                    placeholder="تصفية الوحدات..."
+                    className="w-full md:w-64"
+                />
             </div>
 
             <div className="bg-night-800/40 border border-white/5 rounded-[3rem] overflow-hidden shadow-2xl">
@@ -328,7 +374,6 @@ const Archive: React.FC<ArchiveProps> = ({ members, events, transactions, projec
                 <div className="w-24 h-24 bg-primary-600/10 rounded-full flex items-center justify-center text-primary-500 mx-auto mb-6 shadow-inner animate-glow-primary"><Activity size={48}/></div>
                 <h3 className="text-3xl font-black text-white mb-4">ملخص الأداء السنوي العام</h3>
                 <p className="text-night-400 text-sm max-w-2xl mx-auto font-bold leading-relaxed">بناءً على البيانات المجمعة، حقق الفوج هذا العام نسبة نجاح برامج بلغت 84% مع استقرار مالي بنسبة 92%. تم تسجيل تفوق ملحوظ في وحدة الكشاف والمتقدم.</p>
-                {/* Fix: Completed the truncated list and closing divs */}
                 <div className="grid grid-cols-2 md:grid-cols-4 gap-8 mt-10">
                     <div>
                         <p className="text-night-500 text-[10px] font-black uppercase mb-1">المعدل العام</p>
@@ -343,7 +388,6 @@ const Archive: React.FC<ArchiveProps> = ({ members, events, transactions, projec
         </div>
     );
 
-    // Fix: Added missing renderSearch function
     const renderSearch = () => (
         <div className="animate-fade-in space-y-10 font-['Cairo'] text-right pb-20" dir="rtl">
             <div className="bg-night-800/40 p-12 rounded-[3rem] border border-white/5 shadow-xl flex flex-col items-center justify-center text-center">
@@ -394,5 +438,23 @@ const Archive: React.FC<ArchiveProps> = ({ members, events, transactions, projec
     );
 };
 
-// Fix: Added missing default export
+// Internal Helper for Icon (Box)
+const Box = ({ size, className }: { size: number, className?: string }) => (
+    <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}>
+        <path d="M21 8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16Z" />
+        <path d="m3.3 7 8.7 5 8.7-5" />
+        <path d="M12 22V12" />
+    </svg>
+);
+
+// Internal Helper for Icon (Coins)
+const Coins = ({ size, className }: { size: number, className?: string }) => (
+    <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}>
+        <circle cx="8" cy="8" r="6" />
+        <path d="M18.09 10.37A6 6 0 1 1 10.34 18" />
+        <path d="M7 6h1v4" />
+        <path d="m16.71 13.88.7.71-2.82 2.82" />
+    </svg>
+);
+
 export default Archive;

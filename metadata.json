@@ -1,7 +1,9 @@
 {
   "name": "Scouts Pro",
   "description": "Comprehensive Scout Management System",
-  "version": "v2.2-STABLE-LOCKDOWN",
-  "lastBackup": "2024-11-01 14:00:00",
-  "requestFramePermissions": []
+  "version": "v3.3-STABLE-RESTORE",
+  "lastBackup": "2024-11-20 10:00:00",
+  "requestFramePermissions": [
+    "camera"
+  ]
 }

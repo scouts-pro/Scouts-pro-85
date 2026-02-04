@@ -15,6 +15,24 @@ interface AdministrationProps {
     onAddNotification?: (title: string, message: string, type: 'SUCCESS' | 'WARNING' | 'INFO') => void;
 }
 
+// Fixed: Moved Modal definition outside of Administration component to prevent focus loss during state updates (typing)
+const Modal = ({ isOpen, onClose, title, children, footer, maxWidth = "max-w-4xl" }: any) => {
+    if (!isOpen) return null;
+    return (
+        <div className="fixed inset-0 z-[9999] flex items-center justify-center p-4 animate-fade-in font-['Cairo'] text-right" dir="rtl">
+            <div className="fixed inset-0 bg-night-950/90 backdrop-blur-md" onClick={onClose}></div>
+            <div className={`bg-night-800 w-full ${maxWidth} rounded-[2.5rem] border border-white/10 shadow-2xl relative overflow-hidden flex flex-col max-h-[90vh]`}>
+                <div className="p-6 border-b border-white/5 flex justify-between items-center bg-night-900/40">
+                    <button onClick={onClose} className="p-2.5 hover:bg-white/5 rounded-full text-night-400 transition-all"><X size={20}/></button>
+                    <h3 className="text-xl font-black text-white">{title}</h3>
+                </div>
+                <div className="flex-1 overflow-y-auto custom-scrollbar p-8">{children}</div>
+                {footer && <div className="p-6 border-t border-white/5 bg-night-900/50 flex justify-end gap-4">{footer}</div>}
+            </div>
+        </div>
+    );
+};
+
 const Administration: React.FC<AdministrationProps> = ({ onAddNotification }) => {
     const [activeTab, setActiveTab] = useState(0);
     const [searchQuery, setSearchQuery] = useState('');
@@ -56,23 +74,6 @@ const Administration: React.FC<AdministrationProps> = ({ onAddNotification }) =>
         { label: 'قسم الإعلام', icon: Megaphone },
         { label: 'الاجتماعات', icon: Users }
     ];
-
-    const Modal = ({ isOpen, onClose, title, children, footer, maxWidth = "max-w-4xl" }: any) => {
-        if (!isOpen) return null;
-        return (
-            <div className="fixed inset-0 z-[9999] flex items-center justify-center p-4 animate-fade-in font-['Cairo'] text-right" dir="rtl">
-                <div className="fixed inset-0 bg-night-950/90 backdrop-blur-md" onClick={onClose}></div>
-                <div className={`bg-night-800 w-full ${maxWidth} rounded-[2.5rem] border border-white/10 shadow-2xl relative overflow-hidden flex flex-col max-h-[90vh]`}>
-                    <div className="p-6 border-b border-white/5 flex justify-between items-center bg-night-900/40">
-                        <button onClick={onClose} className="p-2.5 hover:bg-white/5 rounded-full text-night-400 transition-all"><X size={20}/></button>
-                        <h3 className="text-xl font-black text-white">{title}</h3>
-                    </div>
-                    <div className="flex-1 overflow-y-auto custom-scrollbar p-8">{children}</div>
-                    {footer && <div className="p-6 border-t border-white/5 bg-night-900/50 flex justify-end gap-4">{footer}</div>}
-                </div>
-            </div>
-        );
-    };
 
     // --- Handlers ---
     const handleSaveCorrespondence = () => {
@@ -148,7 +149,6 @@ const Administration: React.FC<AdministrationProps> = ({ onAddNotification }) =>
                                 <td className="p-6 text-night-300 text-sm max-w-xs truncate">{c.subject}</td>
                                 <td className="p-6 text-center">
                                     <div className="flex justify-center gap-2">
-                                        {/* Added Eye icon here */}
                                         <button className="p-2 bg-white/5 hover:bg-primary-600 rounded-xl text-white transition-all"><Eye size={16}/></button>
                                         <button className="p-2 bg-white/5 hover:bg-emerald-600 rounded-xl text-white transition-all"><Printer size={16}/></button>
                                     </div>
@@ -173,20 +173,20 @@ const Administration: React.FC<AdministrationProps> = ({ onAddNotification }) =>
                         </div>
                         <div className="space-y-2">
                             <label className="text-xs font-black text-night-400">الرقم المرجعي</label>
-                            <input type="text" className="w-full bg-night-900 border border-white/10 rounded-2xl p-4 text-white font-mono" value={newCorr.refNumber} onChange={e => setNewCorr({...newCorr, refNumber: e.target.value})} />
+                            <input type="text" className="w-full bg-night-900 border border-white/10 rounded-2xl p-4 text-white font-mono" value={newCorr.refNumber || ''} onChange={e => setNewCorr({...newCorr, refNumber: e.target.value})} />
                         </div>
                     </div>
                     <div className="space-y-2">
                         <label className="text-xs font-black text-night-400">التاريخ</label>
-                        <input type="date" className="w-full bg-night-900 border border-white/10 rounded-2xl p-4 text-white" value={newCorr.date} onChange={e => setNewCorr({...newCorr, date: e.target.value})} />
+                        <input type="date" className="w-full bg-night-900 border border-white/10 rounded-2xl p-4 text-white" value={newCorr.date || ''} onChange={e => setNewCorr({...newCorr, date: e.target.value})} />
                     </div>
                     <div className="space-y-2">
                         <label className="text-xs font-black text-night-400">المرسل / المستلم</label>
-                        <input type="text" className="w-full bg-night-900 border border-white/10 rounded-2xl p-4 text-white font-bold" value={newCorr.senderReceiver} onChange={e => setNewCorr({...newCorr, senderReceiver: e.target.value})} />
+                        <input type="text" className="w-full bg-night-900 border border-white/10 rounded-2xl p-4 text-white font-bold" value={newCorr.senderReceiver || ''} onChange={e => setNewCorr({...newCorr, senderReceiver: e.target.value})} />
                     </div>
                     <div className="space-y-2">
                         <label className="text-xs font-black text-night-400">الموضوع</label>
-                        <textarea className="w-full h-32 bg-night-900 border border-white/10 rounded-2xl p-4 text-white resize-none" value={newCorr.subject} onChange={e => setNewCorr({...newCorr, subject: e.target.value})} />
+                        <textarea className="w-full h-32 bg-night-900 border border-white/10 rounded-2xl p-4 text-white resize-none" value={newCorr.subject || ''} onChange={e => setNewCorr({...newCorr, subject: e.target.value})} />
                     </div>
                     <button onClick={handleSaveCorrespondence} className="w-full py-5 bg-primary-600 hover:bg-primary-500 text-white rounded-2xl font-black shadow-xl transition-all">تأكيد التسجيل</button>
                 </div>
@@ -240,27 +240,27 @@ const Administration: React.FC<AdministrationProps> = ({ onAddNotification }) =>
             <Modal isOpen={showMissionModal} onClose={() => setShowMissionModal(false)} title="إصدار أمر بمهمة كشفية" maxWidth="max-w-4xl">
                 <div className="grid grid-cols-2 gap-8">
                     <div className="space-y-4">
-                        <div className="space-y-1"><label className="text-[10px] font-black text-night-400 uppercase tracking-widest">المهمة</label><input type="text" className="w-full bg-night-900 border border-white/10 rounded-xl p-3 text-white" value={newMission.mission} onChange={e => setNewMission({...newMission, mission: e.target.value})} /></div>
-                        <div className="space-y-1"><label className="text-[10px] font-black text-night-400 uppercase tracking-widest">الوجهة</label><input type="text" className="w-full bg-night-900 border border-white/10 rounded-xl p-3 text-white" value={newMission.destination} onChange={e => setNewMission({...newMission, destination: e.target.value})} /></div>
-                        <div className="space-y-1"><label className="text-[10px] font-black text-night-400 uppercase tracking-widest">السبب</label><input type="text" className="w-full bg-night-900 border border-white/10 rounded-xl p-3 text-white" value={newMission.reason} onChange={e => setNewMission({...newMission, reason: e.target.value})} /></div>
+                        <div className="space-y-1"><label className="text-[10px] font-black text-night-400 uppercase tracking-widest">المهمة</label><input type="text" className="w-full bg-night-900 border border-white/10 rounded-xl p-3 text-white" value={newMission.mission || ''} onChange={e => setNewMission({...newMission, mission: e.target.value})} /></div>
+                        <div className="space-y-1"><label className="text-[10px] font-black text-night-400 uppercase tracking-widest">الوجهة</label><input type="text" className="w-full bg-night-900 border border-white/10 rounded-xl p-3 text-white" value={newMission.destination || ''} onChange={e => setNewMission({...newMission, destination: e.target.value})} /></div>
+                        <div className="space-y-1"><label className="text-[10px] font-black text-night-400 uppercase tracking-widest">السبب</label><input type="text" className="w-full bg-night-900 border border-white/10 rounded-xl p-3 text-white" value={newMission.reason || ''} onChange={e => setNewMission({...newMission, reason: e.target.value})} /></div>
                         <div className="grid grid-cols-2 gap-4">
-                            <div className="space-y-1"><label className="text-[10px] font-black text-night-400 uppercase tracking-widest">تاريخ البداية</label><input type="date" className="w-full bg-night-900 border border-white/10 rounded-xl p-3 text-white" value={newMission.startDate} onChange={e => setNewMission({...newMission, startDate: e.target.value})} /></div>
-                            <div className="space-y-1"><label className="text-[10px] font-black text-night-400 uppercase tracking-widest">تاريخ الانتهاء</label><input type="date" className="w-full bg-night-900 border border-white/10 rounded-xl p-3 text-white" value={newMission.endDate} onChange={e => setNewMission({...newMission, endDate: e.target.value})} /></div>
+                            <div className="space-y-1"><label className="text-[10px] font-black text-night-400 uppercase tracking-widest">تاريخ البداية</label><input type="date" className="w-full bg-night-900 border border-white/10 rounded-xl p-3 text-white" value={newMission.startDate || ''} onChange={e => setNewMission({...newMission, startDate: e.target.value})} /></div>
+                            <div className="space-y-1"><label className="text-[10px] font-black text-night-400 uppercase tracking-widest">تاريخ الانتهاء</label><input type="date" className="w-full bg-night-900 border border-white/10 rounded-xl p-3 text-white" value={newMission.endDate || ''} onChange={e => setNewMission({...newMission, endDate: e.target.value})} /></div>
                         </div>
                     </div>
                     <div className="space-y-4">
-                        <div className="space-y-1"><label className="text-[10px] font-black text-night-400 uppercase tracking-widest">القائد المسؤول</label><input type="text" className="w-full bg-night-900 border border-white/10 rounded-xl p-3 text-white font-bold" value={newMission.responsibleLeader} onChange={e => setNewMission({...newMission, responsibleLeader: e.target.value})} /></div>
+                        <div className="space-y-1"><label className="text-[10px] font-black text-night-400 uppercase tracking-widest">القائد المسؤول</label><input type="text" className="w-full bg-night-900 border border-white/10 rounded-xl p-3 text-white font-bold" value={newMission.responsibleLeader || ''} onChange={e => setNewMission({...newMission, responsibleLeader: e.target.value})} /></div>
                         <div className="grid grid-cols-2 gap-4">
-                            <div className="space-y-1"><label className="text-[10px] font-black text-night-400 uppercase tracking-widest">تاريخ الميلاد</label><input type="date" className="w-full bg-night-900 border border-white/10 rounded-xl p-3 text-white" value={newMission.leaderDOB} onChange={e => setNewMission({...newMission, leaderDOB: e.target.value})} /></div>
-                            <div className="space-y-1"><label className="text-[10px] font-black text-night-400 uppercase tracking-widest">رقم بطاقة التعريف</label><input type="text" className="w-full bg-night-900 border border-white/10 rounded-xl p-3 text-white font-mono" value={newMission.idCardNumber} onChange={e => setNewMission({...newMission, idCardNumber: e.target.value})} /></div>
+                            <div className="space-y-1"><label className="text-[10px] font-black text-night-400 uppercase tracking-widest">تاريخ الميلاد</label><input type="date" className="w-full bg-night-900 border border-white/10 rounded-xl p-3 text-white" value={newMission.leaderDOB || ''} onChange={e => setNewMission({...newMission, leaderDOB: e.target.value})} /></div>
+                            <div className="space-y-1"><label className="text-[10px] font-black text-night-400 uppercase tracking-widest">رقم بطاقة التعريف</label><input type="text" className="w-full bg-night-900 border border-white/10 rounded-xl p-3 text-white font-mono" value={newMission.idCardNumber || ''} onChange={e => setNewMission({...newMission, idCardNumber: e.target.value})} /></div>
                         </div>
-                        <div className="space-y-1"><label className="text-[10px] font-black text-night-400 uppercase tracking-widest">الوظيفة الكشفية</label><input type="text" className="w-full bg-night-900 border border-white/10 rounded-xl p-3 text-white" value={newMission.scoutJob} onChange={e => setNewMission({...newMission, scoutJob: e.target.value})} /></div>
+                        <div className="space-y-1"><label className="text-[10px] font-black text-night-400 uppercase tracking-widest">الوظيفة الكشفية</label><input type="text" className="w-full bg-night-900 border border-white/10 rounded-xl p-3 text-white" value={newMission.scoutJob || ''} onChange={e => setNewMission({...newMission, scoutJob: e.target.value})} /></div>
                         <div className="grid grid-cols-2 gap-4">
-                            <div className="space-y-1"><label className="text-[10px] font-black text-night-400 uppercase tracking-widest">وسيلة النقل</label><input type="text" className="w-full bg-night-900 border border-white/10 rounded-xl p-3 text-white" value={newMission.transportType} onChange={e => setNewMission({...newMission, transportType: e.target.value})} /></div>
-                            <div className="space-y-1"><label className="text-[10px] font-black text-night-400 uppercase tracking-widest">رقم الوسيلة</label><input type="text" className="w-full bg-night-900 border border-white/10 rounded-xl p-3 text-white font-mono" value={newMission.transportNumber} onChange={e => setNewMission({...newMission, transportNumber: e.target.value})} /></div>
+                            <div className="space-y-1"><label className="text-[10px] font-black text-night-400 uppercase tracking-widest">وسيلة النقل</label><input type="text" className="w-full bg-night-900 border border-white/10 rounded-xl p-3 text-white" value={newMission.transportType || ''} onChange={e => setNewMission({...newMission, transportType: e.target.value})} /></div>
+                            <div className="space-y-1"><label className="text-[10px] font-black text-night-400 uppercase tracking-widest">رقم الوسيلة</label><input type="text" className="w-full bg-night-900 border border-white/10 rounded-xl p-3 text-white font-mono" value={newMission.transportNumber || ''} onChange={e => setNewMission({...newMission, transportNumber: e.target.value})} /></div>
                         </div>
                     </div>
-                    <div className="col-span-2 space-y-1"><label className="text-[10px] font-black text-night-400 uppercase tracking-widest">المرافقين (أسماء أو عدد)</label><textarea className="w-full h-20 bg-night-900 border border-white/10 rounded-2xl p-4 text-white resize-none" value={newMission.companions} onChange={e => setNewMission({...newMission, companions: e.target.value})} /></div>
+                    <div className="col-span-2 space-y-1"><label className="text-[10px] font-black text-night-400 uppercase tracking-widest">المرافقين (أسماء أو عدد)</label><textarea className="w-full h-20 bg-night-900 border border-white/10 rounded-2xl p-4 text-white resize-none" value={newMission.companions || ''} onChange={e => setNewMission({...newMission, companions: e.target.value})} /></div>
                     <div className="col-span-2"><button onClick={handleSaveMission} className="w-full py-5 bg-primary-600 hover:bg-primary-500 text-white rounded-2xl font-black shadow-xl transition-all">تأكيد وحفظ أمر المهمة</button></div>
                 </div>
             </Modal>
@@ -313,20 +313,20 @@ const Administration: React.FC<AdministrationProps> = ({ onAddNotification }) =>
                         </div>
                         <div className="space-y-2">
                             <label className="text-xs font-black text-night-400">تاريخ النشر</label>
-                            <input type="date" className="w-full bg-night-900 border border-white/10 rounded-2xl p-4 text-white" value={newAnnounce.date} onChange={e => setNewAnnounce({...newAnnounce, date: e.target.value})} />
+                            <input type="date" className="w-full bg-night-900 border border-white/10 rounded-2xl p-4 text-white" value={newAnnounce.date || ''} onChange={e => setNewAnnounce({...newAnnounce, date: e.target.value})} />
                         </div>
                     </div>
                     <div className="space-y-2">
                         <label className="text-xs font-black text-night-400">عنوان الخبر / الإعلان</label>
-                        <input type="text" className="w-full bg-night-900 border border-white/10 rounded-2xl p-4 text-white font-bold text-lg" value={newAnnounce.title} onChange={e => setNewAnnounce({...newAnnounce, title: e.target.value})} />
+                        <input type="text" className="w-full bg-night-900 border border-white/10 rounded-2xl p-4 text-white font-bold text-lg" value={newAnnounce.title || ''} onChange={e => setNewAnnounce({...newAnnounce, title: e.target.value})} />
                     </div>
                     <div className="space-y-2">
                         <label className="text-xs font-black text-night-400">محتوى النشر</label>
-                        <textarea className="w-full h-48 bg-night-900 border border-white/10 rounded-2xl p-4 text-white resize-none leading-relaxed" value={newAnnounce.content} onChange={e => setNewAnnounce({...newAnnounce, content: e.target.value})} />
+                        <textarea className="w-full h-48 bg-night-900 border border-white/10 rounded-2xl p-4 text-white resize-none leading-relaxed" value={newAnnounce.content || ''} onChange={e => setNewAnnounce({...newAnnounce, content: e.target.value})} />
                     </div>
                     <div className="space-y-2">
                         <label className="text-xs font-black text-night-400">اسم الكاتب / الناشر</label>
-                        <input type="text" className="w-full bg-night-900 border border-white/10 rounded-2xl p-4 text-white" value={newAnnounce.author} onChange={e => setNewAnnounce({...newAnnounce, author: e.target.value})} />
+                        <input type="text" className="w-full bg-night-900 border border-white/10 rounded-2xl p-4 text-white" value={newAnnounce.author || ''} onChange={e => setNewAnnounce({...newAnnounce, author: e.target.value})} />
                     </div>
                     <button onClick={handleSaveAnnouncement} className="w-full py-5 bg-primary-600 hover:bg-primary-500 text-white rounded-2xl font-black shadow-xl transition-all">نشر المحتوى فوراً</button>
                 </div>
@@ -386,22 +386,22 @@ const Administration: React.FC<AdministrationProps> = ({ onAddNotification }) =>
                         </div>
                         <div className="space-y-2">
                             <label className="text-xs font-black text-night-400">التاريخ</label>
-                            <input type="date" className="w-full bg-night-900 border border-white/10 rounded-2xl p-4 text-white" value={newMeeting.date} onChange={e => setNewMeeting({...newMeeting, date: e.target.value})} />
+                            <input type="date" className="w-full bg-night-900 border border-white/10 rounded-2xl p-4 text-white" value={newMeeting.date || ''} onChange={e => setNewMeeting({...newMeeting, date: e.target.value})} />
                         </div>
                     </div>
                     <div className="grid grid-cols-2 gap-4">
                         <div className="space-y-2">
                             <label className="text-xs font-black text-night-400">توقيت الاجتماع</label>
-                            <input type="time" className="w-full bg-night-900 border border-white/10 rounded-2xl p-4 text-white" value={newMeeting.time} onChange={e => setNewMeeting({...newMeeting, time: e.target.value})} />
+                            <input type="time" className="w-full bg-night-900 border border-white/10 rounded-2xl p-4 text-white" value={newMeeting.time || ''} onChange={e => setNewMeeting({...newMeeting, time: e.target.value})} />
                         </div>
                         <div className="space-y-2">
                             <label className="text-xs font-black text-night-400">مكان الاجتماع</label>
-                            <input type="text" className="w-full bg-night-900 border border-white/10 rounded-2xl p-4 text-white" value={newMeeting.location} onChange={e => setNewMeeting({...newMeeting, location: e.target.value})} />
+                            <input type="text" className="w-full bg-night-900 border border-white/10 rounded-2xl p-4 text-white" value={newMeeting.location || ''} onChange={e => setNewMeeting({...newMeeting, location: e.target.value})} />
                         </div>
                     </div>
                     <div className="space-y-2">
                         <label className="text-xs font-black text-night-400">الموضوعات والنقاط المدرجة</label>
-                        <textarea className="w-full h-48 bg-night-900 border border-white/10 rounded-2xl p-4 text-white resize-none leading-relaxed" value={newMeeting.topics} onChange={e => setNewMeeting({...newMeeting, topics: e.target.value})} />
+                        <textarea className="w-full h-48 bg-night-900 border border-white/10 rounded-2xl p-4 text-white resize-none leading-relaxed" value={newMeeting.topics || ''} onChange={e => setNewMeeting({...newMeeting, topics: e.target.value})} />
                     </div>
                     <button onClick={handleSaveMeeting} className="w-full py-5 bg-primary-600 hover:bg-primary-500 text-white rounded-2xl font-black shadow-xl transition-all">توثيق محضر الاجتماع</button>
                 </div>

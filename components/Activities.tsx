@@ -12,7 +12,7 @@ import {
     Zap, Rocket, Heart, Award, Globe, Upload, Hash,
     Image as ImageIcon, UserX, AlertCircle, TrendingDown, Crown,
     Coins, Trash, LayoutGrid, Columns, Maximize2, Eye, Printer, Download,
-    Check, AlertTriangle
+    Check, AlertTriangle, BarChart3
 } from 'lucide-react';
 import { UNITS_LIST } from '../constants';
 
@@ -24,6 +24,49 @@ const ACTIVITY_TYPES = [
 const EXPENSE_TYPES = [
     'نقل', 'تغذية', 'لوازم', 'كراء', 'خدمات', 'طباعة', 'تجهيزات', 'مصاريف أخرى'
 ];
+
+// --- Professional Custom Dropdown Component ---
+const CustomDropdown = ({ options, value, onChange, placeholder, icon: Icon, className }: any) => {
+    const [isOpen, setIsOpen] = useState(false);
+    const selected = options.find((o: any) => (typeof o === 'object' ? o.value === value : o === value));
+    const label = selected ? (typeof selected === 'object' ? selected.label : selected) : placeholder;
+
+    return (
+        <div className={`relative ${className} font-['Cairo']`}>
+            <div 
+                onClick={() => setIsOpen(!isOpen)}
+                className="w-full bg-night-900 border border-white/10 rounded-2xl p-4 text-white flex items-center justify-between cursor-pointer hover:border-primary-500 transition-all shadow-inner"
+            >
+                <div className="flex items-center gap-3">
+                    {Icon && <Icon size={18} className="text-primary-400" />}
+                    <span className={`font-bold ${!value ? 'text-night-500' : 'text-white'}`}>{label || placeholder}</span>
+                </div>
+                <ChevronDown size={16} className={`text-night-500 transition-transform ${isOpen ? 'rotate-180' : ''}`} />
+            </div>
+            {isOpen && (
+                <>
+                    <div className="fixed inset-0 z-[1000]" onClick={() => setIsOpen(false)} />
+                    <div className="absolute top-full left-0 right-0 mt-2 bg-night-800 border border-white/10 rounded-2xl shadow-2xl z-[1001] max-h-60 overflow-y-auto custom-scrollbar animate-fade-in">
+                        {options.map((opt: any, idx: number) => {
+                            const val = typeof opt === 'object' ? opt.value : opt;
+                            const lbl = typeof opt === 'object' ? opt.label : opt;
+                            return (
+                                <div 
+                                    key={idx} 
+                                    onClick={() => { onChange(val); setIsOpen(false); }}
+                                    className={`p-4 hover:bg-white/5 cursor-pointer text-sm text-white border-b border-white/5 last:border-0 flex items-center justify-between ${val === value ? 'bg-primary-600/10 text-primary-400 font-black' : ''}`}
+                                >
+                                    {lbl}
+                                    {val === value && <CheckCircle2 size={14} />}
+                                </div>
+                            );
+                        })}
+                    </div>
+                </>
+            )}
+        </div>
+    );
+};
 
 // --- Fixed Modal Component Outside Render ---
 const Modal = ({ isOpen, onClose, title, children, footer, maxWidth = "max-w-4xl", className = "", overlayClassName = "bg-night-950/98 backdrop-blur-2xl" }: any) => {
@@ -155,7 +198,7 @@ const Activities: React.FC<ActivitiesProps> = ({
     setSelectedEvent(updatedEvent);
     if (onUpdateActivity) onUpdateActivity(updatedEvent);
     if (onAddNotification) {
-        onAddNotification('تمت العملية بنجاح', `تم إضافة ${isLeader ? 'القائد' : 'الكشاف'} ${member.fullName} بنجاح.`, 'SUCCESS');
+        onAddNotification('تمت العملية بنجاح', `تم إضافة ${isLeader ? 'القائد' : 'الكشاف'} ${member.fullName} إلى النشاط بنجاح.`, 'SUCCESS');
     }
   };
 
@@ -253,7 +296,7 @@ const Activities: React.FC<ActivitiesProps> = ({
     onUpdateEquipment(updated);
   };
 
-  // --- TAB 1: نظرة عامة (Architecturally Locked) ---
+  // --- TAB 1: نظرة عامة ---
   const renderOverviewTab = () => {
       if (!selectedEvent) return null;
       const maxPart = selectedEvent.maxParticipants || 50;
@@ -506,17 +549,23 @@ const Activities: React.FC<ActivitiesProps> = ({
                   <div className="space-y-6">
                       <div className="space-y-2">
                           <label className="text-xs font-black text-night-400">اختيار العضو</label>
-                          <select className="w-full bg-night-900 border border-white/10 rounded-2xl p-4 text-white font-bold" value={deliveryData.memberId} onChange={e => setDeliveryData({...deliveryData, memberId: e.target.value})}>
-                              <option value="">اختر العضو المسجل بالنشاط...</option>
-                              {activityMembers.map(m => <option key={m.id} value={m.id}>{m.fullName} ({m.unit})</option>)}
-                          </select>
+                          <CustomDropdown 
+                              options={activityMembers.map(m => ({ value: m.id, label: `${m.fullName} (${m.unit})` }))}
+                              value={deliveryData.memberId}
+                              onChange={(v: string) => setDeliveryData({...deliveryData, memberId: v})}
+                              placeholder="اختر العضو المسجل بالنشاط..."
+                              icon={Users}
+                          />
                       </div>
                       <div className="space-y-2">
                           <label className="text-xs font-black text-night-400">العتاد المتاح (المرشح من المخزن)</label>
-                          <select className="w-full bg-night-900 border border-white/10 rounded-2xl p-4 text-white font-bold" value={deliveryData.equipmentId} onChange={e => setDeliveryData({...deliveryData, equipmentId: e.target.value})}>
-                              <option value="">اختر قطعة عتاد متاحة...</option>
-                              {equipmentList.filter(i => i.status === 'متاح').map(i => <option key={i.id} value={i.id}>{i.name} [{i.uniqueId}]</option>)}
-                          </select>
+                          <CustomDropdown 
+                              options={equipmentList.filter(i => i.status === 'متاح').map(i => ({ value: i.id, label: `${i.name} [${i.uniqueId}]` }))}
+                              value={deliveryData.equipmentId}
+                              onChange={(v: string) => setDeliveryData({...deliveryData, equipmentId: v})}
+                              placeholder="اختر قطعة عتاد متاحة..."
+                              icon={Box}
+                          />
                       </div>
                       <div className="space-y-2">
                           <label className="text-xs font-black text-night-400">المسؤول عن التسليم</label>
@@ -663,7 +712,16 @@ const Activities: React.FC<ActivitiesProps> = ({
                       <label className="text-xs font-black text-night-400">رقم النشاط (تلقائي)</label>
                       <div className="w-full bg-night-950 border border-white/5 rounded-2xl p-4 text-primary-400 font-mono font-black shadow-inner">{formData.activityId}</div>
                     </div>
-                    <div className="space-y-2"><label className="text-xs font-black text-night-400">نوع النشاط</label><select className="w-full bg-night-900 border border-white/10 rounded-2xl p-4 text-white" value={formData.activityType} onChange={e => setFormData({...formData, activityType: e.target.value})}>{ACTIVITY_TYPES.map(t => <option key={t} value={t}>{t}</option>)}</select></div>
+                    <div className="space-y-2">
+                        <label className="text-xs font-black text-night-400">نوع النشاط</label>
+                        <CustomDropdown 
+                            options={ACTIVITY_TYPES}
+                            value={formData.activityType}
+                            onChange={(v: string) => setFormData({...formData, activityType: v})}
+                            placeholder="اختر النوع..."
+                            icon={Tag}
+                        />
+                    </div>
                     <div className="space-y-2"><label className="text-xs font-black text-night-400">المكان</label><input type="text" className="w-full bg-night-900 border border-white/10 rounded-2xl p-4 text-white font-bold" value={formData.location} onChange={e => setFormData({...formData, location: e.target.value})} /></div>
                     <div className="space-y-2"><label className="text-xs font-black text-night-400">تاريخ البدء</label><input type="date" className="w-full bg-night-900 border border-white/10 rounded-2xl p-4 text-white font-mono" value={formData.startDate} onChange={e => setFormData({...formData, startDate: e.target.value})} /></div>
                     <div className="space-y-2"><label className="text-xs font-black text-night-400">توقيت النشاط</label><input type="time" className="w-full bg-night-900 border border-white/10 rounded-2xl p-4 text-white font-mono" value={formData.activityTime} onChange={e => setFormData({...formData, activityTime: e.target.value})} /></div>
@@ -694,10 +752,13 @@ const Activities: React.FC<ActivitiesProps> = ({
                 <div className="space-y-6 animate-fade-in">
                     <div className="space-y-2">
                         <label className="text-xs font-black text-night-400">مسؤول النشاط (المدير العام)</label>
-                        <select className="w-full bg-night-900 border border-white/10 rounded-2xl p-4 text-white" value={formData.managerId} onChange={e => setFormData({...formData, managerId: e.target.value})}>
-                          <option value="">اختر المسؤول...</option>
-                          {members.filter(m => m.role.includes('قائد')).map(m => <option key={m.id} value={m.id}>{m.fullName}</option>)}
-                        </select>
+                        <CustomDropdown 
+                            options={members.filter(m => m.role.includes('قائد')).map(m => ({ value: m.id, label: m.fullName }))}
+                            value={formData.managerId}
+                            onChange={(v: string) => setFormData({...formData, managerId: v})}
+                            placeholder="اختر المسؤول..."
+                            icon={UserCog}
+                        />
                     </div>
                 </div>
             )}
@@ -787,18 +848,47 @@ const Activities: React.FC<ActivitiesProps> = ({
                       </div>
                   </div>
               </div>
-              <div className="flex bg-night-800/30 p-1 rounded-2xl border border-white/5 mb-10 self-start shadow-inner">
-                  {[{ label: 'نظرة عامة', icon: LayoutDashboard }, { label: 'المشاركون', icon: Users }, { label: 'المالية', icon: TrendingUp }, { label: 'العتاد واللباس', icon: Box }].map((tab, idx) => (
-                      <button key={idx} onClick={() => setDetailTab(idx)} className={`px-10 py-4 font-black text-xs rounded-xl transition-all flex items-center gap-2 ${detailTab === idx ? 'bg-primary-600 text-white shadow-xl' : 'text-night-400 hover:text-white hover:bg-white/5'}`}>
+              <div className="flex bg-night-800/30 p-1 rounded-2xl border border-white/5 mb-10 self-start shadow-inner overflow-x-auto no-scrollbar">
+                  {[
+                    { label: 'نظرة عامة', icon: LayoutDashboard }, 
+                    { label: 'المشاركون', icon: Users }, 
+                    { label: 'المالية', icon: TrendingUp }, 
+                    { label: 'العتاد واللباس', icon: Box },
+                    { label: 'تقرير النشاط', icon: FileText },
+                    { label: 'التقييم', icon: Star },
+                    { label: 'الإحصائيات', icon: BarChart3 }
+                  ].map((tab, idx) => (
+                      <button key={idx} onClick={() => setDetailTab(idx)} className={`px-10 py-4 font-black text-xs rounded-xl transition-all flex items-center gap-2 whitespace-nowrap ${detailTab === idx ? 'bg-primary-600 text-white shadow-xl' : 'text-night-400 hover:text-white hover:bg-white/5'}`}>
                           <tab.icon size={16}/> {tab.label}
                       </button>
                   ))}
               </div>
-              <div className="flex-1">
+              <div className="flex-1 overflow-y-auto no-scrollbar">
                 {detailTab === 0 && renderOverviewTab()}
                 {detailTab === 1 && renderParticipantsTab()}
                 {detailTab === 2 && renderFinanceTab()}
                 {detailTab === 3 && renderEquipmentTab()}
+                {detailTab === 4 && (
+                    <div className="animate-fade-in bg-night-800/40 p-12 rounded-[3rem] border border-white/5 text-center min-h-[400px] flex flex-col items-center justify-center">
+                        <FileText size={64} className="text-primary-400/20 mb-6" />
+                        <h3 className="text-2xl font-black text-white mb-2">تقرير النشاط</h3>
+                        <p className="text-night-400 font-bold max-w-md">هذا القسم مخصص لإدراج التقارير الأدبية والتربوية المفصلة للنشاط بعد انتهائه.</p>
+                    </div>
+                )}
+                {detailTab === 5 && (
+                    <div className="animate-fade-in bg-night-800/40 p-12 rounded-[3rem] border border-white/5 text-center min-h-[400px] flex flex-col items-center justify-center">
+                        <Star size={64} className="text-yellow-400/20 mb-6" />
+                        <h3 className="text-2xl font-black text-white mb-2">التقييم</h3>
+                        <p className="text-night-400 font-bold max-w-md">تحليل نقاط القوة والضعف وقياس مدى تحقيق الأهداف التربوية المسطرة.</p>
+                    </div>
+                )}
+                {detailTab === 6 && (
+                    <div className="animate-fade-in bg-night-800/40 p-12 rounded-[3rem] border border-white/5 text-center min-h-[400px] flex flex-col items-center justify-center">
+                        <BarChart3 size={64} className="text-emerald-400/20 mb-6" />
+                        <h3 className="text-2xl font-black text-white mb-2">الإحصائيات</h3>
+                        <p className="text-night-400 font-bold max-w-md">تحليل بياني لحضور الوحدات، استهلاك الميزانية، وتوزع المشاركين.</p>
+                    </div>
+                )}
               </div>
           </div>
       );

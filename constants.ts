@@ -1,4 +1,3 @@
-
 import { UnitName, MemberRole } from './types';
 
 export const UNITS_LIST = Object.values(UnitName);
@@ -42,7 +41,7 @@ export const NAV_ITEMS = [
   { id: 'INSURANCE', label: 'التأمينات', icon: 'ShieldCheck' },
   { id: 'FINANCE', label: 'المالية', icon: 'Coins' },
   { id: 'DISCIPLINE', label: 'الانضباط', icon: 'Gavel' },
-  { id: 'RANKING', label: 'الترتيب والأوسمة', icon: 'Medal' },
+  { id: 'RANKING', label: 'الترتيب والشارات', icon: 'Medal' },
   { id: 'EQUIPMENT', label: 'العتاد واللباس', icon: 'Box' },
   { id: 'ACTIVITIES', label: 'الأنشطة', icon: 'Calendar' },
   { id: 'CAMPS', label: 'المخيمات', icon: 'Map' },
