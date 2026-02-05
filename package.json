@@ -14,7 +14,8 @@
     "@google/genai": "^1.38.0",
     "lucide-react": "^0.563.0",
     "recharts": "^3.7.0",
-    "react-markdown": "^10.1.0"
+    "react-markdown": "^10.1.0",
+    "react-qr-code": "2.0.15"
   },
   "devDependencies": {
     "@types/node": "^22.14.0",

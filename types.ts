@@ -256,17 +256,38 @@ export interface Project {
   description: string;
 }
 
-export type EquipmentStatus = 'متاح' | 'مسلم' | 'مخصص' | 'صيانة' | 'تالف' | 'مفقود' | 'متلف';
+export type EquipmentStatus = 'متاح' | 'مسلم' | 'مخصص' | 'صيانة' | 'تالف' | 'مفقود' | 'متلف' | 'متوسط' | 'رديئة' | 'مقبولة';
 export type DeliveryType = 'دائم' | 'مؤقت';
+
+export interface EquipmentLog {
+  id: string;
+  transactionId?: string; // ID to group lifecycle events (assign -> return)
+  itemId: string;
+  itemName: string;
+  category?: 'لباس' | 'عتاد';
+  action: 'تسليم' | 'إرجاع' | 'صيانة' | 'إتلاف' | 'إضافة';
+  date: string;
+  time?: string; // Added for time support
+  memberId?: string;
+  memberName?: string;
+  eventId?: string;
+  eventTitle?: string;
+  notes?: string;
+  condition: string;
+  relatedLogIds?: string[]; // Optional history linking
+  assignmentResponsible?: string; // المسؤول عن التسليم
+  returnResponsible?: string; // المسؤول عن الارجاع
+}
 
 export interface EquipmentItem {
   id: string;
   uniqueId: string;
+  activeTransactionId?: string; // Tracks the current active assignment cycle
   name: string;
   category: 'لباس' | 'عتاد';
   subCategory?: string;
   status: EquipmentStatus | string;
-  condition: 'جديد' | 'مستعمل' | 'يحتاج صيانة' | 'تالف';
+  condition: 'جديد' | 'مستعمل' | 'يحتاج صيانة' | 'تالف' | 'متوسط' | 'رديئة' | 'مقبولة';
   location: string;
   assignedTo?: string;
   deliveryType?: DeliveryType | string;
@@ -278,7 +299,22 @@ export interface EquipmentItem {
   purchaseDate?: string;
   eventId?: string; 
   fineAmount?: number; 
-  issuedBy?: string; 
+  issuedBy?: string; // المسؤول عن التسليم
+  price?: number;
+  supplier?: string;
+  brand?: string;
+  imageUrl?: string;
+  returnPriority?: 'عادية' | 'متوسطة' | 'عالية/حرجة';
+  // New fields for Maintenance and Fine Management
+  maintenanceType?: string;
+  maintenanceDesc?: string;
+  fineDecision?: 'PENDING' | 'FINE' | 'EXEMPT';
+  fineTreasury?: string;
+  time?: string; // Added for time support
+  returnResponsible?: string; // المسؤول عن الارجاع
+  assignmentCondition?: string; // الحالة عند التسليم
+  measurementType?: string; // نوع القياس (الطول، الوزن، إلخ)
+  measurementValue?: string; // قيمة القياس
 }
 
 export interface Badge {

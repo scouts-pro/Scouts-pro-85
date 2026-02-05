@@ -205,24 +205,49 @@ const Settings: React.FC = () => {
             <div className="space-y-4">
                 <h4 className="text-sm font-bold text-night-300 flex items-center gap-2 px-1"><History size={16} className="text-primary-400"/> سجل نقاط الرجوع المتميزة</h4>
                 <div className="grid gap-4">
-                    {/* NEW POINT v3.3 */}
-                    <div className="bg-gradient-to-r from-blue-600/30 to-purple-600/10 border border-primary-500/50 p-5 rounded-2xl flex items-center justify-between shadow-2xl animate-glow-primary">
+                    {/* NEW POINT v3.8 */}
+                    <div className="bg-gradient-to-r from-emerald-600/30 to-teal-600/10 border border-emerald-500/50 p-5 rounded-2xl flex items-center justify-between shadow-2xl animate-glow-primary">
                         <div className="flex items-center gap-5">
-                            <div className="w-12 h-12 bg-primary-600/20 rounded-xl flex items-center justify-center text-white shadow-inner"><ShieldCheck size={24}/></div>
+                            <div className="w-12 h-12 bg-emerald-600/20 rounded-xl flex items-center justify-center text-white shadow-inner"><Zap size={24} className="text-emerald-400"/></div>
                             <div>
-                                <div className="flex items-center gap-2"><h5 className="font-bold text-white text-lg font-['Cairo']">Full System Integrity & Literal Enforcement (v3.3)</h5><span className="bg-primary-500/20 text-primary-400 text-[10px] px-2 py-0.5 rounded font-black uppercase tracking-tighter border border-primary-500/30">نقطة حالية</span></div>
-                                <div className="flex items-center gap-3 mt-1 text-xs text-night-300 font-medium font-['Cairo']"><span className="flex items-center gap-1"><Clock size={12}/> {new Date().toLocaleString('ar-DZ')}</span><span className="flex items-center gap-1"><Zap size={12} className="text-yellow-400"/> إصدار v3.3</span></div>
+                                <div className="flex items-center gap-2"><h5 className="font-bold text-white text-lg font-['Cairo']">UI Refinement & Module Stabilization (v3.8)</h5><span className="bg-emerald-500/20 text-emerald-400 text-[10px] px-2 py-0.5 rounded font-black uppercase tracking-tighter border border-emerald-500/30">نقطة حالية</span></div>
+                                <div className="flex items-center gap-3 mt-1 text-xs text-night-300 font-medium font-['Cairo']"><span className="flex items-center gap-1"><Clock size={12}/> {new Date().toLocaleDateString('ar-DZ')}</span><span className="flex items-center gap-1"><Zap size={12} className="text-yellow-400"/> إصدار v3.8</span></div>
                             </div>
                         </div>
                         <button className="p-2.5 bg-white/10 text-white hover:bg-white/20 rounded-lg transition-all"><Download size={18}/></button>
                     </div>
 
-                    <div className="bg-night-900/50 border border-white/5 p-5 rounded-2xl flex items-center justify-between shadow-lg opacity-80">
+                    {/* v3.7 */}
+                    <div className="bg-night-900/50 border border-white/5 p-5 rounded-2xl flex items-center justify-between shadow-lg opacity-80 hover:opacity-100 transition-opacity">
                         <div className="flex items-center gap-5">
                             <div className="w-12 h-12 bg-primary-600/20 rounded-xl flex items-center justify-center text-white"><ShieldCheck size={24}/></div>
                             <div>
-                                <div className="flex items-center gap-2"><h5 className="font-bold text-white text-lg font-['Cairo']">Final Security & Interface Recovery (v3.2)</h5><span className="bg-night-700/50 text-night-400 text-[10px] px-2 py-0.5 rounded font-black uppercase tracking-tighter">نقطة أرشفة</span></div>
-                                <div className="flex items-center gap-3 mt-1 text-xs text-night-400 font-medium font-['Cairo']"><span className="flex items-center gap-1"><Clock size={12}/> 15/11/2024</span><span className="flex items-center gap-1"><Zap size={12} className="text-night-500"/> إصدار v3.2</span></div>
+                                <div className="flex items-center gap-2"><h5 className="font-bold text-white text-lg font-['Cairo']">Equipment & UI Refinement (v3.7)</h5><span className="bg-night-700/50 text-night-400 text-[10px] px-2 py-0.5 rounded font-black uppercase tracking-tighter">نقطة أرشفة</span></div>
+                                <div className="flex items-center gap-3 mt-1 text-xs text-night-400 font-medium font-['Cairo']"><span className="flex items-center gap-1"><Clock size={12}/> 27/11/2024</span><span className="flex items-center gap-1"><Zap size={12} className="text-night-500"/> إصدار v3.7</span></div>
+                            </div>
+                        </div>
+                        <button className="p-2.5 bg-white/5 text-night-400 rounded-lg"><Download size={18}/></button>
+                    </div>
+
+                    {/* v3.6 */}
+                    <div className="bg-night-900/50 border border-white/5 p-5 rounded-2xl flex items-center justify-between shadow-lg opacity-60 hover:opacity-100 transition-opacity">
+                        <div className="flex items-center gap-5">
+                            <div className="w-12 h-12 bg-primary-600/20 rounded-xl flex items-center justify-center text-white"><ShieldCheck size={24}/></div>
+                            <div>
+                                <div className="flex items-center gap-2"><h5 className="font-bold text-white text-lg font-['Cairo']">Visual Excellence & Functional Expansion (v3.6)</h5><span className="bg-night-700/50 text-night-400 text-[10px] px-2 py-0.5 rounded font-black uppercase tracking-tighter">نقطة أرشفة</span></div>
+                                <div className="flex items-center gap-3 mt-1 text-xs text-night-400 font-medium font-['Cairo']"><span className="flex items-center gap-1"><Clock size={12}/> 26/11/2024</span><span className="flex items-center gap-1"><Zap size={12} className="text-night-500"/> إصدار v3.6</span></div>
+                            </div>
+                        </div>
+                        <button className="p-2.5 bg-white/5 text-night-400 rounded-lg"><Download size={18}/></button>
+                    </div>
+
+                    {/* v3.5 */}
+                    <div className="bg-night-900/50 border border-white/5 p-5 rounded-2xl flex items-center justify-between shadow-lg opacity-40 hover:opacity-100 transition-opacity">
+                        <div className="flex items-center gap-5">
+                            <div className="w-12 h-12 bg-primary-600/20 rounded-xl flex items-center justify-center text-white"><ShieldCheck size={24}/></div>
+                            <div>
+                                <div className="flex items-center gap-2"><h5 className="font-bold text-white text-lg font-['Cairo']">Equipment UI & Notification System Update (v3.5)</h5><span className="bg-night-700/50 text-night-400 text-[10px] px-2 py-0.5 rounded font-black uppercase tracking-tighter">نقطة أرشفة</span></div>
+                                <div className="flex items-center gap-3 mt-1 text-xs text-night-400 font-medium font-['Cairo']"><span className="flex items-center gap-1"><Clock size={12}/> 26/11/2024</span><span className="flex items-center gap-1"><Zap size={12} className="text-night-500"/> إصدار v3.5</span></div>
                             </div>
                         </div>
                         <button className="p-2.5 bg-white/5 text-night-400 rounded-lg"><Download size={18}/></button>
@@ -257,13 +282,13 @@ const Settings: React.FC = () => {
                         <tr className="hover:bg-white/5 bg-primary-600/10">
                             <td className="p-4 font-mono text-primary-400">{new Date().toLocaleString('ar-DZ')}</td>
                             <td className="p-4 text-white">System Admin</td>
-                            <td className="p-4 font-bold text-primary-400">إنشاء نقطة رجوع جديدة: v3.3 Full Integrity</td>
+                            <td className="p-4 font-bold text-primary-400">إنشاء نقطة رجوع جديدة: v3.8 UI Refinement & Module Stabilization</td>
                             <td className="p-4 text-primary-400 flex items-center gap-1 font-bold"><CheckCircle2 size={14}/> مكتمل</td>
                         </tr>
                         <tr className="hover:bg-white/5">
-                            <td className="p-4 font-mono text-night-400">15/11/2024, 14:30</td>
+                            <td className="p-4 font-mono text-night-400">28/11/2024, 10:00</td>
                             <td className="p-4 text-white">System Admin</td>
-                            <td className="p-4 font-bold text-night-300">استرجاع وتحديث كافة بيانات الإعدادات (v3.2)</td>
+                            <td className="p-4 font-bold text-night-300">إنشاء نقطة رجوع جديدة: v3.7 Equipment & UI Refinement</td>
                             <td className="p-4 text-primary-400 flex items-center gap-1 font-bold"><CheckCircle2 size={14}/> مكتمل</td>
                         </tr>
                     </tbody>
@@ -294,7 +319,7 @@ const Settings: React.FC = () => {
                     <p className="text-night-400 mt-2 font-bold opacity-80 uppercase tracking-widest text-sm">إدارة الفوج، تخصيص النظام، وحماية سلامة البيانات.</p>
                 </div>
                 <div className="bg-primary-600/10 border border-primary-500/20 px-4 py-2 rounded-xl text-primary-400 text-xs font-black animate-pulse flex items-center gap-2">
-                    <ShieldCheck size={14}/> نظام الحماية v3.3 نشط
+                    <ShieldCheck size={14}/> نظام الحماية v3.8 نشط
                 </div>
             </div>
             

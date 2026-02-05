@@ -8,7 +8,7 @@ import {
     Sparkles, Shield, UserCog, Tag, Layers, Info, BadgeDollarSign, Coins, UserPlus, CheckCircle2, AlertCircle, AlertTriangle, UserX, Crown, Search, Printer, Edit, Trash2, Timer,
     LayoutDashboard, TrendingUp, TrendingDown, HandCoins, Receipt, ArrowRightLeft, History, Eye, Download, Box, Shirt, Filter, ShieldCheck, Gavel, RefreshCcw, UserCheck, AlertOctagon,
     Check, ArrowUpDown, ArrowUp, ArrowDown, ChevronDown, ListFilter, MonitorPlay, Package, UserCircle2, Archive as ArchiveIcon, RotateCcw, Ban, ShieldX, FileText, Star, BarChart3,
-    CalendarDays
+    CalendarDays, ClipboardCheck
 } from 'lucide-react';
 
 const EXPENSE_TYPES = [
@@ -157,6 +157,14 @@ const Camps: React.FC<CampsProps> = ({
         notes: ''
     });
 
+    // New state for Return Modal
+    const [returnModal, setReturnModal] = useState<{isOpen: boolean; item: EquipmentItem | null; condition: string; notes: string}>({
+        isOpen: false,
+        item: null,
+        condition: 'ممتازة',
+        notes: ''
+    });
+
     const foundItemByUniqueId = useMemo(() => {
         if (!deliveryData.uniqueIdInput) return null;
         return (equipmentList || []).find(i => i.uniqueId === deliveryData.uniqueIdInput);
@@ -190,9 +198,22 @@ const Camps: React.FC<CampsProps> = ({
         if (!deliveryData.memberId || !itemToDeliver || !selectedCamp || !onUpdateEquipment) return;
         const returnDateStr = `${deliveryData.expectedReturnYear}-${deliveryData.expectedReturnMonth.padStart(2, '0')}-${deliveryData.expectedReturnDay.padStart(2, '0')}`;
         const deliveryDateStr = `${deliveryData.deliveryYear}-${deliveryData.deliveryMonth.padStart(2, '0')}-${deliveryData.deliveryDay.padStart(2, '0')}`;
+        const transactionId = `trans_camp_${Date.now()}`;
+
         const updated = (equipmentList || []).map(item => {
             if (item.id === itemToDeliver.id) {
-                return { ...item, status: 'مسلم' as EquipmentStatus, assignedTo: deliveryData.memberId, eventId: selectedCamp.id, issuedBy: deliveryData.issuer, assignmentDate: deliveryDateStr, returnDate: returnDateStr, condition: deliveryData.condition as any, description: deliveryData.notes };
+                return { 
+                    ...item, 
+                    status: 'مسلم' as EquipmentStatus, 
+                    assignedTo: deliveryData.memberId, 
+                    eventId: selectedCamp.id, 
+                    issuedBy: deliveryData.issuer, 
+                    assignmentDate: deliveryDateStr, 
+                    returnDate: returnDateStr, 
+                    condition: deliveryData.condition as any, 
+                    description: deliveryData.notes,
+                    activeTransactionId: transactionId
+                };
             }
             return item;
         });
@@ -206,7 +227,7 @@ const Camps: React.FC<CampsProps> = ({
         const updated = (equipmentList || []).map(item => {
             if (item.id === selectedItemForAction.id) {
                 const isReturning = statusUpdateData.status === 'متاح';
-                return { ...item, status: statusUpdateData.status, fineAmount: statusUpdateData.isExempt ? 0 : statusUpdateData.fine, description: statusUpdateData.notes, assignedTo: isReturning ? undefined : item.assignedTo, eventId: isReturning ? undefined : item.eventId, issuedBy: isReturning ? undefined : item.issuedBy };
+                return { ...item, status: statusUpdateData.status, fineAmount: statusUpdateData.isExempt ? 0 : statusUpdateData.fine, description: statusUpdateData.notes, assignedTo: isReturning ? undefined : item.assignedTo, eventId: isReturning ? undefined : item.eventId, issuedBy: isReturning ? undefined : item.issuedBy, activeTransactionId: isReturning ? undefined : item.activeTransactionId };
             }
             return item;
         });
@@ -215,6 +236,36 @@ const Camps: React.FC<CampsProps> = ({
         setShowReturnModal(false);
         setSelectedItemForAction(null);
         if (onAddNotification) onAddNotification('تم التحديث', 'تم توثيق الحالة.', 'SUCCESS');
+    };
+
+    const handleReturnItem = (item: EquipmentItem) => {
+        setReturnModal({
+            isOpen: true,
+            item: item,
+            condition: item.condition || 'ممتازة',
+            notes: ''
+        });
+    };
+
+    const handleConfirmReturn = () => {
+        if(!onUpdateEquipment || !returnModal.item) return;
+        const updatedEquipment = (equipmentList || []).map(eq => {
+            if(eq.id === returnModal.item?.id) {
+                return {
+                    ...eq,
+                    status: 'متاح' as EquipmentStatus,
+                    assignedTo: undefined,
+                    eventId: undefined,
+                    activeTransactionId: undefined,
+                    condition: returnModal.condition as any, // Update with new condition
+                    description: returnModal.notes ? `${eq.description || ''} - ملاحظات الإرجاع: ${returnModal.notes}` : eq.description
+                };
+            }
+            return eq;
+        });
+        onUpdateEquipment(updatedEquipment);
+        setReturnModal({ isOpen: false, item: null, condition: 'ممتازة', notes: '' });
+        if(onAddNotification) onAddNotification('تم الإرجاع', 'تم تحديث حالة القطعة واسترجاعها للمخزن بنجاح.', 'SUCCESS');
     };
 
     const handleAddMemberToCamp = (member: Member) => {
@@ -267,7 +318,58 @@ const Camps: React.FC<CampsProps> = ({
                 <div className="flex justify-between items-center bg-night-900/30 p-4 rounded-[2.5rem] border border-white/5"><h3 className="text-4xl font-black text-white leading-none tracking-tight flex items-center gap-5"><div className="p-4 bg-primary-600/10 text-primary-500 rounded-[2rem] border border-primary-500/20 shadow-inner">{isClothes ? <Shirt size={36}/> : <Box size={36}/>}</div>{isClothes ? 'إدارة عهدة اللباس' : 'إدارة عهدة العتاد'}</h3><div className="flex items-center gap-6"><div className="flex bg-night-900 p-1.5 rounded-2xl border border-white/5"><button onClick={() => setEqSubTab('CLOTHES')} className={`px-6 py-2 rounded-xl text-xs font-black transition-all ${isClothes ? 'bg-primary-600 text-white shadow-lg' : 'text-night-400 hover:text-white'}`}>اللباس</button><button onClick={() => setEqSubTab('EQUIPMENT')} className={`px-6 py-2 rounded-xl text-xs font-black transition-all ${!isClothes ? 'bg-primary-600 text-white shadow-lg' : 'text-night-400 hover:text-white'}`}>العتاد</button></div><button onClick={() => setShowDeliveryModal(true)} className="bg-primary-600 hover:bg-primary-500 text-white px-8 py-4 rounded-2xl flex items-center gap-3 font-black shadow-2xl transition-all h-[60px] whitespace-nowrap"><Plus size={24}/> إضافة عهدة جديدة</button></div></div>
                 <div className="bg-night-800 border border-white/10 rounded-[3rem] overflow-hidden shadow-3xl backdrop-blur-2xl"><div className="p-8 border-b border-white/10 flex flex-col lg:flex-row items-center gap-4"><div className="relative flex-1 w-full group"><input type="text" placeholder={`البحث في قوائم ${isClothes ? 'اللباس' : 'العتاد'}...`} className="w-full bg-night-900 border border-white/10 rounded-2xl py-4 pr-16 pl-40 text-white text-base font-bold outline-none focus:border-primary-500 transition-all shadow-inner" value={eqFilters.search} onChange={e => setEqFilters({...eqFilters, search: e.target.value})} /><Search className="absolute right-6 top-1/2 -translate-y-1/2 text-night-500" size={22} /><div className="absolute left-4 top-1/2 -translate-y-1/2 flex items-center gap-2"><div className="h-8 w-px bg-white/10 mx-2"></div><button onClick={() => setIsFilterCollapsibleOpen(!isFilterCollapsibleOpen)} className={`flex items-center gap-3 px-6 py-2.5 rounded-xl font-black text-xs transition-all border ${isFilterCollapsibleOpen ? 'bg-primary-600 border-primary-500 text-white' : 'bg-night-950 border-white/5 text-night-400 hover:text-white'}`}><Filter size={14} /><span>تصفية</span></button></div></div></div>
                 {isFilterCollapsibleOpen && (<div className="grid grid-cols-1 md:grid-cols-2 gap-6 p-8 pt-0 animate-slide-in bg-night-900/20"><CustomDropdown label="الوحدة الكشفية" options={[{value: 'ALL', label: 'كل الوحدات'}, ...UNITS_LIST.map(u => ({value: u, label: u}))]} value={eqFilters.unit} onChange={(v: any) => setEqFilters({...eqFilters, unit: v})} icon={Layers} placeholder="اختر الوحدة" /><CustomDropdown label="حالة العهدة" options={[{value: 'ALL', label: 'الكل'}, {value: 'PAID', label: 'مسلمة'}, {value: 'UNPAID', label: 'بانتظار التسليم'}]} value={eqFilters.status} onChange={(v: any) => setEqFilters({...eqFilters, status: v})} icon={ShieldCheck} placeholder="حسب الحالة" /></div>)}
-                <div className="overflow-x-auto"><table className="w-full text-right border-collapse min-w-[1200px]"><thead className="bg-night-950/80 text-night-300 text-[10px] font-black uppercase tracking-[0.2em] border-b border-white/5"><tr><th className="p-8">الإسم الكامل</th><th className="p-8">رقم القطعة</th><th className="p-8">القطعة</th><th className="p-8 text-center">العدد</th><th className="p-8">تاريخ التسليم</th><th className="p-8">الحالة</th><th className="p-8">المسؤول</th><th className="p-8 text-center">الاجراءات</th></tr></thead><tbody className="divide-y divide-white/5 text-sm font-bold">{filteredMembers.map(member => { const memberItems = campItems.filter(i => i.assignedTo === member.id); return memberItems.length > 0 ? memberItems.map((item, idx) => (<tr key={item.id} className="hover:bg-primary-500/5 transition-all group/row">{idx === 0 ? (<td className="p-6" rowSpan={memberItems.length}><div className="flex items-center gap-5 cursor-pointer" onClick={() => { setSelectedMemberForDetail(member); setShowMemberDetailModal(true); }}><div className="relative"><img src={member.image} className="w-12 h-12 rounded-2xl border-2 border-night-700 shadow-xl" /><div className="absolute -bottom-1 -right-1 bg-night-900 rounded-full p-1 border border-white/10 shadow-lg"><UserCircle2 size={12} className="text-primary-400"/></div></div><div className="text-right"><p className="font-black text-white text-base leading-none mb-1 group-hover/row:text-primary-400 transition-colors">{member.fullName}</p><p className="text-[9px] text-night-500 font-black uppercase tracking-widest leading-tight">ID: {member.membershipNumber}</p></div></div></td>) : null}<td className="p-6 font-mono text-primary-400 text-xs tracking-widest">{item.uniqueId}</td><td className="p-6 text-white text-right">{item.name}</td><td className="p-6 text-center text-night-300">1</td><td className="p-6 text-night-400 font-mono text-xs">{item.assignmentDate || '---'}</td><td className="p-6 text-right"><span className={`px-4 py-1.5 rounded-xl text-[9px] font-black uppercase border shadow-inner inline-flex items-center gap-2 ${item.status === 'مسلم' ? 'bg-emerald-600/10 text-emerald-400 border-emerald-500/20' : item.status === 'تالف' ? 'bg-amber-600/10 text-amber-400 border-amber-500/20' : 'bg-rose-600/10 text-rose-400 border-rose-500/20'}`}>{item.status}</span></td><td className="p-6 text-night-400 font-bold text-right">{item.issuedBy || '---'}</td><td className="p-6 text-center"><div className="flex justify-center gap-3"><button onClick={() => { setSelectedItemForAction(item); setShowMemberDetailModal(true); }} className="p-3 bg-white/5 hover:bg-primary-600 rounded-xl text-night-300 hover:text-white transition-all shadow-xl border border-white/5"><Eye size={18}/></button><button onClick={() => { setSelectedItemForAction(item); setStatusUpdateData({status: 'تالف', fine: 500, notes: '', isExempt: false}); setShowStatusUpdateModal(true); }} className="p-3 bg-white/5 hover:bg-rose-600 rounded-xl text-night-300 hover:text-white transition-all shadow-xl border border-white/5"><AlertTriangle size={18}/></button><button onClick={() => { setSelectedItemForAction(item); setStatusUpdateData({status: 'متاح', fine: 0, notes: '', isExempt: true}); setShowReturnModal(true); }} className="p-3 bg-white/5 hover:bg-emerald-600 rounded-xl text-night-300 hover:text-white transition-all shadow-xl border border-white/5"><RotateCcw size={18}/></button></div></td></tr>)) : (<tr key={member.id} className="hover:bg-primary-500/5 transition-all group/row"><td className="p-6"><div className="flex items-center gap-5 cursor-pointer"><div className="relative"><img src={member.image} className="w-12 h-12 rounded-2xl border-2 border-night-700 shadow-xl opacity-40 grayscale" /></div><div className="text-right"><p className="font-black text-night-400 text-base leading-none mb-1">{member.fullName}</p></div></div></td><td colSpan={7} className="p-6 text-center text-night-600 font-black italic opacity-30">لم يستلم عهدة بعد</td></tr>); })}</tbody></table></div></div>
+                <div className="overflow-x-auto"><table className="w-full text-right border-collapse min-w-[1200px]"><thead className="bg-night-950/80 text-night-300 text-[10px] font-black uppercase tracking-[0.2em] border-b border-white/5"><tr><th className="p-8">الإسم الكامل</th><th className="p-8">رقم القطعة</th><th className="p-8">القطعة</th><th className="p-8 text-center">العدد</th><th className="p-8">تاريخ التسليم</th><th className="p-8">الحالة</th><th className="p-8">المسؤول</th><th className="p-8 text-center">الاجراءات</th></tr></thead><tbody className="divide-y divide-white/5 text-sm font-bold">{filteredMembers.map(member => { const memberItems = campItems.filter(i => i.assignedTo === member.id); return memberItems.length > 0 ? memberItems.map((item, idx) => (<tr key={item.id} className="hover:bg-primary-500/5 transition-all group/row">{idx === 0 ? (<td className="p-6" rowSpan={memberItems.length}><div className="flex items-center gap-5 cursor-pointer" onClick={() => { setSelectedMemberForDetail(member); setShowMemberDetailModal(true); }}><div className="relative"><img src={member.image} className="w-12 h-12 rounded-2xl border-2 border-night-700 shadow-xl" /><div className="absolute -bottom-1 -right-1 bg-night-900 rounded-full p-1 border border-white/10 shadow-lg"><UserCircle2 size={12} className="text-primary-400"/></div></div><div className="text-right"><p className="font-black text-white text-base leading-none mb-1 group-hover/row:text-primary-400 transition-colors">{member.fullName}</p><p className="text-[9px] text-night-500 font-black uppercase tracking-widest leading-tight">ID: {member.membershipNumber}</p></div></div></td>) : null}<td className="p-6 font-mono text-primary-400 text-xs tracking-widest">{item.uniqueId}</td><td className="p-6 text-white text-right">{item.name}</td><td className="p-6 text-center text-night-300">1</td><td className="p-6 text-night-400 font-mono text-xs">{item.assignmentDate || '---'}</td><td className="p-6 text-right"><span className={`px-4 py-1.5 rounded-xl text-[9px] font-black uppercase border shadow-inner inline-flex items-center gap-2 ${item.status === 'مسلم' ? 'bg-emerald-600/10 text-emerald-400 border-emerald-500/20' : item.status === 'تالف' ? 'bg-amber-600/10 text-amber-400 border-amber-500/20' : 'bg-rose-600/10 text-rose-400 border-rose-500/20'}`}>{item.status}</span></td><td className="p-6 text-night-400 font-bold text-right">{item.issuedBy || '---'}</td><td className="p-6 text-center"><div className="flex justify-center gap-3"><button onClick={() => { setSelectedItemForAction(item); setShowMemberDetailModal(true); }} className="p-3 bg-white/5 hover:bg-primary-600 rounded-xl text-night-300 hover:text-white transition-all shadow-xl border border-white/5"><Eye size={18}/></button><button onClick={() => { setSelectedItemForAction(item); setStatusUpdateData({status: 'تالف', fine: 500, notes: '', isExempt: false}); setShowStatusUpdateModal(true); }} className="p-3 bg-white/5 hover:bg-rose-600 rounded-xl text-night-300 hover:text-white transition-all shadow-xl border border-white/5"><AlertTriangle size={18}/></button>
+                {item.status === 'مسلم' && (
+                    <button 
+                    onClick={() => handleReturnItem(item)}
+                    className="p-3 bg-emerald-600/20 hover:bg-emerald-600 text-emerald-400 hover:text-white rounded-xl transition-all shadow-xl border border-white/5"
+                    title="استرجاع للمخزن"
+                    >
+                        <RefreshCcw size={18}/>
+                    </button>
+                )}
+                </div></td></tr>)) : (<tr key={member.id} className="hover:bg-primary-500/5 transition-all group/row"><td className="p-6"><div className="flex items-center gap-5 cursor-pointer"><div className="relative"><img src={member.image} className="w-12 h-12 rounded-2xl border-2 border-night-700 shadow-xl opacity-40 grayscale" /></div><div className="text-right"><p className="font-black text-night-400 text-base leading-none mb-1">{member.fullName}</p></div></div></td><td colSpan={7} className="p-6 text-center text-night-600 font-black italic opacity-30">لم يستلم عهدة بعد</td></tr>); })}</tbody></table></div></div>
+            
+                {/* Return Modal (New) */}
+                <Modal isOpen={returnModal.isOpen} onClose={() => setReturnModal({ ...returnModal, isOpen: false })} title="إرجاع العتاد إلى المخزن" maxWidth="max-w-md">
+                    <div className="space-y-6">
+                        <div className="bg-night-900/50 p-4 rounded-2xl border border-white/5 flex items-center gap-4">
+                            <div className="p-3 bg-white/5 rounded-xl text-primary-400"><Box size={24} /></div>
+                            <div>
+                                <h4 className="text-white font-black">{returnModal.item?.name}</h4>
+                                <p className="text-xs text-night-400 font-mono">{returnModal.item?.uniqueId}</p>
+                            </div>
+                        </div>
+
+                        <div className="space-y-2">
+                            <label className="text-xs font-black text-night-400">حالة القطعة عند الإرجاع</label>
+                            <CustomDropdown 
+                                options={['ممتازة', 'جيدة', 'تحتاج صيانة', 'تالفة'].map(s => ({ value: s, label: s }))}
+                                value={returnModal.condition}
+                                onChange={(v: string) => setReturnModal({ ...returnModal, condition: v })}
+                                placeholder="اختر الحالة..."
+                                icon={ClipboardCheck}
+                            />
+                        </div>
+
+                        <div className="space-y-2">
+                            <label className="text-xs font-black text-night-400">ملاحظات الإرجاع</label>
+                            <textarea 
+                                className="w-full h-24 bg-night-900 border border-white/10 rounded-2xl p-4 text-white text-sm outline-none focus:border-primary-500 resize-none font-bold"
+                                placeholder="أي ملاحظات إضافية حول حالة القطعة..."
+                                value={returnModal.notes}
+                                onChange={e => setReturnModal({ ...returnModal, notes: e.target.value })}
+                            />
+                        </div>
+
+                        <div className="p-4 bg-emerald-600/10 border border-emerald-500/20 rounded-2xl flex items-center gap-3">
+                            <Info size={20} className="text-emerald-400" />
+                            <p className="text-[11px] text-emerald-300 leading-relaxed font-bold">سيتم تحديث حالة القطعة إلى "متاح" في المخزن الرئيسي مع تسجيل الحالة الجديدة.</p>
+                        </div>
+
+                        <button onClick={handleConfirmReturn} className="w-full py-4 bg-emerald-600 hover:bg-emerald-500 text-white rounded-2xl font-black shadow-xl transition-all transform hover:scale-105">تأكيد الإرجاع للمخزن</button>
+                    </div>
+                </Modal>
             </div>
         );
     };

@@ -1,6 +1,6 @@
 
 import React, { useState, useMemo, useEffect } from 'react';
-import { Event, Member, UnitName, Treasury, BankAccount, ActivityExpense, ActivityFundingSource, ApprovalStatus, EquipmentItem, EquipmentStatus } from '../types';
+import { Event, Member, UnitName, ActivityExpense, ActivityFundingSource, Treasury, BankAccount, EquipmentItem, EquipmentStatus, ApprovalStatus } from '../types';
 import { 
     Calendar, MapPin, Users, Plus, ArrowUpRight,
     Clock, Search, X, ChevronLeft, Target, Save, DollarSign, 
@@ -12,7 +12,7 @@ import {
     Zap, Rocket, Heart, Award, Globe, Upload, Hash,
     Image as ImageIcon, UserX, AlertCircle, TrendingDown, Crown,
     Coins, Trash, LayoutGrid, Columns, Maximize2, Eye, Printer, Download,
-    Check, AlertTriangle, BarChart3
+    Check, AlertTriangle, BarChart3, RefreshCcw, ClipboardCheck, CornerDownLeft, UserCircle2
 } from 'lucide-react';
 import { UNITS_LIST } from '../constants';
 
@@ -21,18 +21,20 @@ const ACTIVITY_TYPES = [
     'رياضة', 'زيارة ميدانية', 'استكشاف', 'ورشات'
 ];
 
-const EXPENSE_TYPES = [
-    'نقل', 'تغذية', 'لوازم', 'كراء', 'خدمات', 'طباعة', 'تجهيزات', 'مصاريف أخرى'
+const WAREHOUSE_LOCATIONS = [
+    { value: 'المخزن الرئيسي', label: 'المخزن الرئيسي (المقر)' },
+    { value: 'مخزن الوحدات', label: 'مخزن الوحدات' },
+    { value: 'خزانة القادة', label: 'خزانة القادة' },
+    { value: 'مستودع خارجي', label: 'مستودع خارجي' },
 ];
 
-// --- Professional Custom Dropdown Component ---
 const CustomDropdown = ({ options, value, onChange, placeholder, icon: Icon, className }: any) => {
     const [isOpen, setIsOpen] = useState(false);
     const selected = options.find((o: any) => (typeof o === 'object' ? o.value === value : o === value));
     const label = selected ? (typeof selected === 'object' ? selected.label : selected) : placeholder;
 
     return (
-        <div className={`relative ${className} font-['Cairo']`}>
+        <div className={`relative ${className} font-['Cairo'] z-50`}>
             <div 
                 onClick={() => setIsOpen(!isOpen)}
                 className="w-full bg-night-900 border border-white/10 rounded-2xl p-4 text-white flex items-center justify-between cursor-pointer hover:border-primary-500 transition-all shadow-inner"
@@ -68,7 +70,6 @@ const CustomDropdown = ({ options, value, onChange, placeholder, icon: Icon, cla
     );
 };
 
-// --- Fixed Modal Component Outside Render ---
 const Modal = ({ isOpen, onClose, title, children, footer, maxWidth = "max-w-4xl", className = "", overlayClassName = "bg-night-950/98 backdrop-blur-2xl" }: any) => {
     if (!isOpen) return null;
     return (
@@ -135,9 +136,14 @@ const Activities: React.FC<ActivitiesProps> = ({
   const [showDeliveryModal, setShowDeliveryModal] = useState(false);
   const [deliveryData, setDeliveryData] = useState({ memberId: '', equipmentId: '', issuer: 'قائد الفوج' });
 
-  const [newFunding, setNewFunding] = useState<Partial<ActivityFundingSource>>({ label: '', amount: 0, date: new Date().toISOString().split('T')[0] });
-  const [newExpense, setNewExpense] = useState<Partial<ActivityExpense>>({ type: 'تغذية', amount: 0, date: new Date().toISOString().split('T')[0], purpose: '', source: '' });
-  const [transferSurplus, setTransferSurplus] = useState({ amount: 0, destination: '', managerApproval: false });
+  // New state for Return Modal
+  const [returnData, setReturnData] = useState({ condition: 'ممتازة', notes: '', location: 'المخزن الرئيسي', responsible: '' });
+  const [returnModal, setReturnModal] = useState<{isOpen: boolean; item: EquipmentItem | null}>({
+      isOpen: false,
+      item: null,
+  });
+
+  const [eqSubTab, setEqSubTab] = useState<'CLOTHES' | 'EQUIPMENT'>('CLOTHES');
 
   const generateActivityId = () => `ACT-${new Date().getFullYear()}-${Math.floor(1000 + Math.random() * 9000)}`;
 
@@ -172,14 +178,7 @@ const Activities: React.FC<ActivitiesProps> = ({
 
   const [formData, setFormData] = useState<any>(initialForm);
 
-  const fundingSourceOptions = useMemo(() => [
-      { value: 'مساعدات', label: 'مساعدات' },
-      { value: 'إعانات', label: 'إعانات' },
-      { value: 'مساهمات المنخرطين', label: 'مساهمات المنخرطين' },
-      { value: 'مساهمات القادة', label: 'مساهمات القادة' },
-      ...treasuries.map(t => ({ value: `خزينة: ${t.name}`, label: `خزينة: ${t.name}` })),
-      ...bankAccounts.map(b => ({ value: `بنك: ${b.bankName}`, label: `بنك: ${b.bankName}` }))
-  ], [treasuries, bankAccounts]);
+  const leaders = useMemo(() => members.filter(m => m.role === 'قائد').map(m => ({value: m.fullName, label: m.fullName})), [members]);
 
   const handleOpenDetail = (event: Event) => {
     setSelectedEvent(event);
@@ -264,6 +263,7 @@ const Activities: React.FC<ActivitiesProps> = ({
 
   const handleDeliverEquipment = () => {
     if (!deliveryData.memberId || !deliveryData.equipmentId || !selectedEvent || !onUpdateEquipment) return;
+    const transactionId = `trans_${Date.now()}`;
 
     const updatedEquipment = equipmentList.map(item => {
         if (item.id === deliveryData.equipmentId) {
@@ -273,7 +273,8 @@ const Activities: React.FC<ActivitiesProps> = ({
                 assignedTo: deliveryData.memberId,
                 eventId: selectedEvent.id,
                 issuedBy: deliveryData.issuer,
-                assignmentDate: new Date().toISOString().split('T')[0]
+                assignmentDate: new Date().toISOString().split('T')[0],
+                activeTransactionId: transactionId
             };
         }
         return item;
@@ -285,15 +286,35 @@ const Activities: React.FC<ActivitiesProps> = ({
     setDeliveryData({ memberId: '', equipmentId: '', issuer: 'قائد الفوج' });
   };
 
-  const handleUpdateItemStatus = (itemId: string, newStatus: EquipmentStatus, fine: number = 0) => {
-    if (!onUpdateEquipment) return;
-    const updated = equipmentList.map(item => {
-        if (item.id === itemId) {
-            return { ...item, status: newStatus, fineAmount: fine };
-        }
-        return item;
-    });
-    onUpdateEquipment(updated);
+  const handleReturnItem = (item: EquipmentItem) => {
+      setReturnData({ condition: 'ممتازة', notes: '', location: 'المخزن الرئيسي', responsible: '' });
+      setReturnModal({
+          isOpen: true,
+          item: item
+      });
+  };
+
+  const handleConfirmReturn = () => {
+      if(!onUpdateEquipment || !returnModal.item) return;
+      const updatedEquipment = equipmentList.map(eq => {
+          if(eq.id === returnModal.item?.id) {
+              return {
+                  ...eq,
+                  status: 'متاح' as EquipmentStatus,
+                  assignedTo: undefined,
+                  eventId: undefined,
+                  activeTransactionId: undefined,
+                  condition: returnData.condition as any, // Update with new condition
+                  description: returnData.notes ? `${eq.description || ''} - ملاحظات الإرجاع: ${returnData.notes}` : eq.description,
+                  location: returnData.location,
+                  returnResponsible: returnData.responsible
+              };
+          }
+          return eq;
+      });
+      onUpdateEquipment(updatedEquipment);
+      setReturnModal({ isOpen: false, item: null });
+      if(onAddNotification) onAddNotification('تم الإرجاع', 'تم تحديث حالة القطعة واسترجاعها للمخزن بنجاح.', 'SUCCESS');
   };
 
   // --- TAB 1: نظرة عامة ---
@@ -459,26 +480,37 @@ const Activities: React.FC<ActivitiesProps> = ({
   const renderEquipmentTab = () => {
       if (!selectedEvent) return null;
       
-      const assignedItems = equipmentList.filter(item => item.eventId === selectedEvent.id);
+      const isClothes = eqSubTab === 'CLOTHES';
+      const assignedItems = equipmentList.filter(item => item.eventId === selectedEvent.id && item.category === (isClothes ? 'لباس' : 'عتاد'));
       const activityMembers = members.filter(m => [...(selectedEvent.participants || []), ...(selectedEvent.leaderIds || [])].includes(m.id));
 
       return (
           <div className="space-y-10 animate-fade-in font-['Cairo'] text-right pb-20" dir="rtl">
               <div className="flex justify-between items-center bg-night-800/60 p-8 rounded-[2.5rem] border border-white/10 shadow-2xl">
                   <div className="flex items-center gap-6">
-                      <div className="p-5 bg-primary-600/20 text-primary-400 rounded-3xl shadow-inner"><Box size={32}/></div>
+                      <div className="p-5 bg-primary-600/20 text-primary-400 rounded-3xl shadow-inner">
+                          {isClothes ? <Shirt size={36}/> : <Box size={36}/>}
+                      </div>
                       <div>
-                          <h3 className="text-3xl font-black text-white leading-none">تتبع العتاد واللباس</h3>
+                          <h3 className="text-3xl font-black text-white leading-none">
+                              {isClothes ? 'تتبع اللباس الكشفي' : 'تتبع العتاد والتجهيزات'}
+                          </h3>
                           <p className="text-night-400 font-bold mt-2">إدارة تسليم واستلام العهدة الشخصية الخاصة بالنشاط.</p>
                       </div>
                   </div>
-                  <button onClick={() => setShowDeliveryModal(true)} className="px-10 py-5 bg-primary-600 hover:bg-primary-500 text-white rounded-[2rem] font-black flex items-center gap-3 shadow-2xl transition-all hover:scale-105 active:scale-95 group">
-                      <Plus size={28} className="group-hover:rotate-90 transition-transform duration-500" /> تسليم عنصر جديد
-                  </button>
+                  <div className="flex gap-4">
+                      <div className="flex bg-night-900 p-1.5 rounded-2xl border border-white/5">
+                          <button onClick={() => setEqSubTab('CLOTHES')} className={`px-6 py-2 rounded-xl text-xs font-black transition-all ${isClothes ? 'bg-primary-600 text-white shadow-lg' : 'text-night-400 hover:text-white'}`}>اللباس</button>
+                          <button onClick={() => setEqSubTab('EQUIPMENT')} className={`px-6 py-2 rounded-xl text-xs font-black transition-all ${!isClothes ? 'bg-primary-600 text-white shadow-lg' : 'text-night-400 hover:text-white'}`}>العتاد</button>
+                      </div>
+                      <button onClick={() => setShowDeliveryModal(true)} className="px-10 py-5 bg-primary-600 hover:bg-primary-500 text-white rounded-[2rem] font-black flex items-center gap-3 shadow-2xl transition-all hover:scale-105 active:scale-95 group">
+                          <Plus size={28} className="group-hover:rotate-90 transition-transform duration-500" /> تسليم عنصر جديد
+                      </button>
+                  </div>
               </div>
 
               <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                  <div className="bg-night-800 border border-white/5 p-6 rounded-3xl text-center shadow-lg"><p className="text-night-400 text-[10px] font-black uppercase mb-1">إجمالي العناصر المسلمة</p><h4 className="text-3xl font-black text-white">{assignedItems.length}</h4></div>
+                  <div className="bg-night-800 border border-white/5 p-6 rounded-3xl text-center shadow-lg"><p className="text-night-400 text-[10px] font-black uppercase mb-1">إجمالي القطع المسلمة</p><h4 className="text-3xl font-black text-white">{assignedItems.length}</h4></div>
                   <div className="bg-night-800 border border-white/5 p-6 rounded-3xl text-center shadow-lg"><p className="text-rose-400 text-[10px] font-black uppercase mb-1">عناصر تالفة/مفقودة</p><h4 className="text-3xl font-black text-rose-500">{assignedItems.filter(i => ['تالف', 'مفقود'].includes(i.status)).length}</h4></div>
                   <div className="bg-night-800 border border-white/5 p-6 rounded-3xl text-center shadow-lg"><p className="text-emerald-400 text-[10px] font-black uppercase mb-1">نسبة الاسترجاع</p><h4 className="text-3xl font-black text-emerald-400">0%</h4></div>
               </div>
@@ -504,11 +536,22 @@ const Activities: React.FC<ActivitiesProps> = ({
                                               {memberItems.length > 0 ? (
                                                   <div className="space-y-2">
                                                       {memberItems.map(item => (
-                                                          <div key={item.id} className="flex items-center gap-2 bg-white/5 p-2 rounded-xl border border-white/5 shadow-sm">
-                                                              <div className={`p-1.5 rounded-lg ${item.category === 'لباس' ? 'bg-purple-600/20 text-purple-400' : 'bg-orange-600/20 text-orange-400'}`}>
-                                                                  {item.category === 'لباس' ? <Shirt size={14}/> : <Box size={14}/>}
+                                                          <div key={item.id} className="flex items-center justify-between gap-2 bg-white/5 p-2 rounded-xl border border-white/5 shadow-sm">
+                                                              <div className="flex items-center gap-2">
+                                                                  <div className={`p-1.5 rounded-lg ${item.category === 'لباس' ? 'bg-purple-600/20 text-purple-400' : 'bg-orange-600/20 text-orange-400'}`}>
+                                                                      {item.category === 'لباس' ? <Shirt size={14}/> : <Box size={14}/>}
+                                                                  </div>
+                                                                  <span className="text-white text-xs">{item.name} <span className="text-[10px] text-night-500">({item.uniqueId})</span></span>
                                                               </div>
-                                                              <span className="text-white text-xs">{item.name} <span className="text-[10px] text-night-500">({item.uniqueId})</span></span>
+                                                              {item.status === 'مسلم' && (
+                                                                  <button 
+                                                                    onClick={() => handleReturnItem(item)}
+                                                                    className="p-1.5 bg-emerald-600/20 hover:bg-emerald-600 text-emerald-400 hover:text-white rounded-lg transition-all"
+                                                                    title="استرجاع للمخزن"
+                                                                  >
+                                                                      <RefreshCcw size={12}/>
+                                                                  </button>
+                                                              )}
                                                           </div>
                                                       ))}
                                                   </div>
@@ -560,7 +603,7 @@ const Activities: React.FC<ActivitiesProps> = ({
                       <div className="space-y-2">
                           <label className="text-xs font-black text-night-400">العتاد المتاح (المرشح من المخزن)</label>
                           <CustomDropdown 
-                              options={equipmentList.filter(i => i.status === 'متاح').map(i => ({ value: i.id, label: `${i.name} [${i.uniqueId}]` }))}
+                              options={equipmentList.filter(i => i.status === 'متاح' && i.category === (eqSubTab === 'CLOTHES' ? 'لباس' : 'عتاد')).map(i => ({ value: i.id, label: `${i.name} [${i.uniqueId}]` }))}
                               value={deliveryData.equipmentId}
                               onChange={(v: string) => setDeliveryData({...deliveryData, equipmentId: v})}
                               placeholder="اختر قطعة عتاد متاحة..."
@@ -578,6 +621,119 @@ const Activities: React.FC<ActivitiesProps> = ({
                       <button onClick={handleDeliverEquipment} className="w-full py-4 bg-primary-600 hover:bg-primary-500 text-white rounded-2xl font-black shadow-xl transition-all transform hover:scale-105">تأكيد عملية التسليم</button>
                   </div>
               </Modal>
+
+              {/* Return Modal (COMPACT SQUARE DESIGN) */}
+              <Modal 
+                  isOpen={returnModal.isOpen} 
+                  onClose={() => setReturnModal({ ...returnModal, isOpen: false })} 
+                  title="" 
+                  maxWidth="max-w-md" 
+                  className="rounded-[2.5rem]"
+              >
+                  <div className="space-y-4">
+                      {/* Compact Header */}
+                      <div className="flex items-center gap-4 mb-2">
+                          <div className="w-12 h-12 bg-emerald-600/20 rounded-xl flex items-center justify-center border border-emerald-500/20 shadow-inner">
+                              <RefreshCcw size={20} className="text-emerald-500" />
+                          </div>
+                          <div>
+                              <h3 className="text-lg font-black text-white leading-none mb-1">
+                                  {eqSubTab === 'CLOTHES' ? 'إرجاع اللباس' : 'إرجاع العتاد'}
+                              </h3>
+                              <p className="text-night-400 text-[10px] font-bold">توثيق الاستلام</p>
+                          </div>
+                      </div>
+
+                      {/* Compact Item Info */}
+                      <div className="bg-night-900/50 p-3 rounded-2xl border border-white/5 flex items-center justify-between shadow-inner">
+                          <div className="flex items-center gap-3">
+                              <div className="w-10 h-10 bg-night-800 rounded-xl flex items-center justify-center border border-white/5">
+                                  {returnModal.item?.category === 'لباس' ? <Shirt size={18} className="text-purple-400"/> : <Box size={18} className="text-orange-400"/>}
+                              </div>
+                              <div>
+                                  <h4 className="text-white font-bold text-sm leading-tight">{returnModal.item?.name}</h4>
+                                  <p className="text-night-500 font-mono text-[9px] tracking-widest">{returnModal.item?.uniqueId}</p>
+                              </div>
+                          </div>
+                          <div className="text-right">
+                              <span className="text-[8px] text-night-500 block">المستلم</span>
+                              <span className="text-white text-[10px] font-bold">{members.find(m => m.id === returnModal.item?.assignedTo)?.fullName || '---'}</span>
+                          </div>
+                      </div>
+
+                      {/* Compact Condition Grid */}
+                      <div>
+                          <label className="text-[10px] font-black text-white uppercase tracking-widest flex items-center gap-1 justify-end mb-2"><ClipboardCheck size={12}/> حالة الإرجاع</label>
+                          <div className="grid grid-cols-4 gap-2">
+                              {['ممتازة', 'جيدة', 'صيانة', 'تالفة'].map(cond => (
+                                  <button 
+                                      key={cond}
+                                      onClick={() => setReturnData({...returnData, condition: cond})}
+                                      className={`py-2 rounded-lg text-[9px] font-black border transition-all ${
+                                          returnData.condition === cond 
+                                          ? 'bg-emerald-600 text-white border-emerald-500 shadow-md scale-105' 
+                                          : 'bg-night-900 text-night-400 border-white/10 hover:bg-white/5'
+                                      }`}
+                                  >
+                                      {cond}
+                                  </button>
+                              ))}
+                          </div>
+                      </div>
+
+                      {/* Inputs in Compact Grid */}
+                      <div className="grid grid-cols-2 gap-3">
+                          <div>
+                              <label className="text-[9px] font-black text-white uppercase mb-1 block text-right">المخزن</label>
+                              <div className="relative">
+                                  <select 
+                                      className="w-full bg-night-900 border border-white/10 rounded-xl py-2 px-3 text-white text-[10px] font-bold outline-none appearance-none"
+                                      value={returnData.location}
+                                      onChange={(e) => setReturnData({...returnData, location: e.target.value})}
+                                  >
+                                      {WAREHOUSE_LOCATIONS.map(opt => <option key={opt.value} value={opt.value}>{opt.label}</option>)}
+                                  </select>
+                                  <CornerDownLeft size={12} className="absolute left-2 top-2.5 text-night-500 pointer-events-none"/>
+                              </div>
+                          </div>
+                          <div>
+                              <label className="text-[9px] font-black text-white uppercase mb-1 block text-right">المسؤول</label>
+                              <div className="relative">
+                                  <select 
+                                      className="w-full bg-night-900 border border-white/10 rounded-xl py-2 px-3 text-white text-[10px] font-bold outline-none appearance-none"
+                                      value={returnData.responsible}
+                                      onChange={(e) => setReturnData({...returnData, responsible: e.target.value})}
+                                  >
+                                      <option value="">اختر...</option>
+                                      {leaders.map((opt:any) => <option key={opt.value} value={opt.value}>{opt.label}</option>)}
+                                  </select>
+                                  <UserCheck size={12} className="absolute left-2 top-2.5 text-night-500 pointer-events-none"/>
+                              </div>
+                          </div>
+                      </div>
+
+                      <div>
+                          <textarea 
+                              className="w-full h-16 bg-night-900 border border-white/10 rounded-xl p-3 text-white text-[10px] outline-none focus:border-emerald-500 resize-none font-bold" 
+                              placeholder="ملاحظات..."
+                              value={returnData.notes}
+                              onChange={e => setReturnData({...returnData, notes: e.target.value})}
+                          />
+                      </div>
+
+                      <div className="p-2 bg-emerald-600/10 border border-emerald-500/20 rounded-xl flex items-center gap-2">
+                          <Info size={14} className="text-emerald-400" />
+                          <p className="text-[9px] text-emerald-300 leading-tight font-bold">سيتم تحديث الحالة فوراً.</p>
+                      </div>
+
+                      <div className="flex gap-2 pt-2">
+                          <button onClick={() => setReturnModal({ ...returnModal, isOpen: false })} className="flex-1 py-3 bg-white/5 hover:bg-white/10 text-white rounded-xl font-black text-[10px] transition-all">إلغاء</button>
+                          <button onClick={handleConfirmReturn} className="flex-[2] py-3 bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-500 hover:to-teal-500 text-white rounded-xl font-black text-[10px] shadow-lg transition-all flex items-center justify-center gap-2">
+                              <CheckCircle2 size={14}/> تأكيد
+                          </button>
+                      </div>
+                  </div>
+              </Modal>
           </div>
       );
   };
@@ -589,7 +745,7 @@ const Activities: React.FC<ActivitiesProps> = ({
       const scouts = members.filter(m => scoutIds.includes(m.id));
       const leaders = members.filter(m => leaderIds.includes(m.id));
       const maxPart = selectedEvent.maxParticipants || 50;
-      const fillRate = Math.round((scouts.length / maxPart) * 100) || 0;
+      const fillRate = Math.round(((scouts.length + leaders.length) / maxPart) * 100) || 0;
       
       const leaderFeeTotal = leaders.length * (selectedEvent.leaderFee || 0);
       const scoutFeeTotal = scouts.length * (selectedEvent.fee || 0);
@@ -839,7 +995,7 @@ const Activities: React.FC<ActivitiesProps> = ({
           <div className="p-8 h-full flex flex-col animate-fade-in relative font-['Cairo'] text-right" dir="rtl">
               <div className="flex items-center justify-between mb-10">
                   <div className="flex items-center gap-6">
-                      <button onClick={() => setView('LIST')} className="p-4 bg-night-800 rounded-2xl border border-white/10 text-white hover:bg-white/5 transition-all shadow-lg hover:-translate-x-1 group ring-4 ring-primary-600/5">
+                      <button onClick={() => setView('LIST')} className="p-4 bg-night-800 rounded-2xl border border-white/10 text-white hover:bg-white/5 transition-all shadow-lg group ring-4 ring-primary-600/5">
                           <ChevronLeft size={28} className="group-hover:text-primary-400 rtl:rotate-180" />
                       </button>
                       <div>

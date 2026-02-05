@@ -1,3 +1,4 @@
+
 import React, { useState, useMemo, useEffect } from 'react';
 import { Member, MemberRole, UnitName, EquipmentItem, MemberActivity } from '../types';
 import { 
@@ -15,6 +16,7 @@ import {
     Barcode, Scan, Upload, Venus, Mars, Percent, Crown, BriefcaseIcon, GraduationCapIcon, HeartPulse, UserCircle2, QrCode,
     CreditCard, Globe2, Book, History, Link, BadgeDollarSign, Hash, Trophy, Fingerprint, Map, LayoutDashboard, Printer, Lock
 } from 'lucide-react';
+import QRCode from "react-qr-code";
 
 // --- Helper Functions ---
 const getAge = (birthDate: string) => {
@@ -28,20 +30,6 @@ const getAge = (birthDate: string) => {
     }
     return age;
 };
-
-// --- Modern Square Barcode Component (Updated to Modern/Tech Style) ---
-const ModernSquareBarcode = ({ code, size = "md" }: { code: string, size?: "sm" | "md" }) => (
-    <div className={`${size === 'sm' ? 'w-16 h-16 p-2' : 'w-20 h-20 p-2.5'} bg-white rounded-2xl border-2 border-night-950 shadow-2xl flex flex-col items-center justify-center group hover:scale-110 transition-all duration-500 relative overflow-hidden`}>
-        <div className="absolute inset-0 opacity-10 bg-[radial-gradient(circle_at_center,_var(--tw-gradient-stops))] from-primary-500 to-transparent"></div>
-        <div className="grid grid-cols-5 gap-0.5 w-full h-full opacity-90 group-hover:opacity-100 transition-opacity z-10">
-            {[...Array(25)].map((_, i) => (
-                <div key={i} className={`rounded-[1px] ${Math.random() > 0.4 ? 'bg-night-950' : 'bg-transparent'}`} />
-            ))}
-        </div>
-        <div className="absolute inset-0 border-[3px] border-night-950/10 rounded-2xl pointer-events-none"></div>
-        <span className={`${size === 'sm' ? 'text-[4px]' : 'text-[6px]'} font-mono font-black text-night-950 mt-1 uppercase tracking-tighter truncate w-full text-center relative z-10`}>{code}</span>
-    </div>
-);
 
 // --- Mandatory Custom Dropdown Component ---
 const CustomDropdown = ({ options, value, onChange, placeholder, className, disabled = false, icon: Icon }: any) => {
@@ -235,8 +223,14 @@ const Members: React.FC<MembersProps> = ({ members, onAddMember, onUpdateMember,
 
   const renderFormHeader = () => (
     <div className="relative bg-night-900/40 p-10 rounded-t-[3rem] border-b border-white/5 overflow-visible animate-fade-in z-[100]">
-        <div className="absolute top-6 left-10 z-10">
-            <ModernSquareBarcode code={formData.membershipNumber || 'SIA-001-B'} />
+        <div className="absolute top-6 left-10 z-10 p-2 bg-white rounded-xl shadow-2xl">
+            <QRCode 
+                value={formData.membershipNumber || 'SIA-001-B'}
+                size={70}
+                level="M"
+                fgColor="#0f172a"
+                bgColor="#FFFFFF"
+            />
         </div>
         <div className="flex flex-col items-center justify-center space-y-8">
             <div className="relative group cursor-pointer" onClick={() => document.getElementById('memberImageInput')?.click()}>
@@ -431,9 +425,15 @@ const Members: React.FC<MembersProps> = ({ members, onAddMember, onUpdateMember,
                           <div className="absolute top-0 left-0 w-full h-[180px] bg-gradient-to-b from-primary-600/20 via-night-900 to-night-900 pointer-events-none"></div>
                           
                           <div className="relative z-20 px-8 pt-8 flex justify-between items-start pointer-events-none">
-                              {/* Top Right: Modern Barcode */}
-                              <div className="pointer-events-auto">
-                                  <ModernSquareBarcode code={selectedMember.membershipNumber} size="sm" />
+                              {/* Top Right: Modern QR Code */}
+                              <div className="pointer-events-auto p-2 bg-white rounded-xl shadow-lg border-2 border-night-900">
+                                  <QRCode 
+                                    value={selectedMember.membershipNumber}
+                                    size={60}
+                                    level="M"
+                                    fgColor="#0f172a"
+                                    bgColor="#FFFFFF"
+                                  />
                               </div>
 
                               {/* Top Left: Compact Action */}

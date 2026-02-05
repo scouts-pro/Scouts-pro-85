@@ -270,7 +270,7 @@ const App: React.FC = () => {
           case 'ARCHIVE': return <Archive members={members} events={events} transactions={transactions} projects={projects} attendance={attendance} />;
           case 'PROJECTS': return <Projects projects={projects} onAddProject={(p) => setProjects([...projects, p])} />;
           case 'RANKING': return <Ranking members={members} badges={badges} pointsHistory={pointsHistory} rankLevels={rankLevels} patrols={patrols} />;
-          case 'EQUIPMENT': return <Equipment items={equipment} members={members} onUpdateEquipment={setEquipment} />;
+          case 'EQUIPMENT': return <Equipment items={equipment} members={members} events={events} onUpdateEquipment={setEquipment} />;
           case 'SETTINGS': return <Settings />;
           default: return <Dashboard members={members} />;
       }
